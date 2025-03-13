@@ -1,0 +1,49 @@
+/* Dark background for entire page */
+body {
+    background-color: #101827; /* almost black with a bluish hue */
+    color: #fff;
+    font-family: 'Nunito', sans-serif; /* or your preferred font */
+}
+
+/* Dark navbar to match the body */
+.navbar {
+    background-color: #101827;
+}
+
+/* Banner card container */
+.banner-card {
+    background-color: #1e293b;  /* dark gray-blue */
+    border-radius: 8px;
+    padding: 2rem;
+}
+
+/* Headline text: bigger, bolder */
+.banner-card h1 {
+    font-size: 2rem;            /* or Bootstrap’s fs-1 etc. */
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #f8fafc;             /* off-white */
+}
+
+/* Subtext: slightly lighter gray */
+.banner-card p {
+    color: #cbd5e1;             /* a cool gray */
+    font-size: 1.125rem;        /* ~18px */
+}
+
+/* Nav brand link color tweak */
+.navbar-brand {
+    color: #f8fafc !important;
+    font-weight: 600;
+}
+.navbar-brand:hover {
+    color: #a3bffa !important;  /* subtle hover */
+}
+
+/* Nav links (Login/Register) also lighter */
+.nav-link {
+    color: #e2e8f0 !important;  /* lighter gray */
+}
+.nav-link:hover {
+    color: #a3bffa !important;  /* bluish hover */
+}

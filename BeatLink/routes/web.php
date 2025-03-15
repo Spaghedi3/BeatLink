@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\BeatController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,11 +15,17 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
-///TO DO
-Route::get('/beats', function () {
-    if (Auth::check()) {
-        return redirect()->route('beats');
-    }
+// Public routes: index, show
+Route::get('/beats', [BeatController::class, 'index'])->name('beats.index');
+Route::get('/beats/{beat}', [BeatController::class, 'show'])->name('beats.show');
+
+// Authenticated routes: create, store, edit, update, destroy
+Route::middleware('auth')->group(function () {
+    Route::get('/beats/create', [BeatController::class, 'create'])->name('beats.create');
+    Route::post('/beats', [BeatController::class, 'store'])->name('beats.store');
+    Route::get('/beats/{beat}/edit', [BeatController::class, 'edit'])->name('beats.edit');
+    Route::put('/beats/{beat}', [BeatController::class, 'update'])->name('beats.update');
+    Route::delete('/beats/{beat}', [BeatController::class, 'destroy'])->name('beats.destroy');
 });
 
 ///TO DO

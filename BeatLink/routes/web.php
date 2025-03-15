@@ -14,6 +14,20 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
+///TO DO
+Route::get('/beats', function () {
+    if (Auth::check()) {
+        return redirect()->route('beats');
+    }
+});
+
+///TO DO
+Route::get('/links', function () {
+    if (Auth::check()) {
+        return redirect()->route('links');
+    }
+});
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');

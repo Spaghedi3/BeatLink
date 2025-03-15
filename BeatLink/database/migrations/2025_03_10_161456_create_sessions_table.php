@@ -12,9 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sessions', function (Blueprint $table) {
-            $table->string('ip_address')->nullable(); // Add ip_address column
+            if (!Schema::hasColumn('sessions', 'ip_address')) {
+                $table->string('ip_address')->nullable();
+            }
         });
     }
+
 
     /**
      * Reverse the migrations.

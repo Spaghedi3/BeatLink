@@ -23,11 +23,10 @@ class BeatController extends Controller
      */
     public function create()
     {
+        // Just return the create form view
         return view('beats.create');
     }
-    /**
-     * Store a newly created resource in storage.
-     */
+
     public function store(Request $request)
     {
         $request->validate([
@@ -39,21 +38,18 @@ class BeatController extends Controller
             'type_beat' => 'nullable|string',
         ]);
 
-        // Handle file upload for the audio file
-        if ($request->hasFile('audio')) {
-            $audioPath = $request->file('audio')->store('public/beats');
-        }
+        // Handle file uploads
+        $audioPath = $request->hasFile('audio')
+            ? $request->file('audio')->store('public/beats')
+            : null;
 
-        // handle picture upload
-        if ($request->hasFile('picture')) {
-            $picturePath = $request->file('picture')->store('public/beat_pictures');
-        } else {
-            $picturePath = null;
-        }
+        $picturePath = $request->hasFile('picture')
+            ? $request->file('picture')->store('public/beat_pictures')
+            : null;
 
-        // (created_at)
+        // Create the beat record
         Beat::create([
-            'user_id'   => auth()->id,
+            'user_id'   => $request->user()->id,
             'name'      => $request->name,
             'file_path' => $audioPath,
             'picture'   => $picturePath,
@@ -62,7 +58,9 @@ class BeatController extends Controller
             'type_beat' => $request->type_beat,
         ]);
 
-        return redirect()->route('beats.index')->with('success', 'Beat uploaded successfully.');
+        return redirect()
+            ->route('beats.index')
+            ->with('success', 'Beat uploaded successfully.');
     }
 
 

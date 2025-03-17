@@ -11,25 +11,25 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     <div class="container mt-5">
-                        <h1>All Beats</h1>
-                        <p>Browse and discover all available beats. Create your own if you’re logged in!</p>
-
+                        @auth
+                        <!-- Button to add a beat (visible only to logged-in users) -->
+                        <a href="{{ route('beats.create') }}" class="btn btn-primary mb-4">
+                            Add Beat
+                        </a>
+                        @else
+                        <!-- Encourage guests to log in or register -->
+                        <p>
+                            <a href="{{ route('login') }}">Log in</a> or
+                            <a href="{{ route('register') }}">register</a> to add your own beats.
+                        </p>
+                        @endauth
                         @if($beats->isEmpty())
                         <!-- Empty State -->
                         <div class="alert alert-info">
-                            <h4>No Beats Yet</h4>
+                            <h1>No Beats Yet</h1>
                             <p>It looks like there are no beats available. Why not create the first one?</p>
 
-                            @auth
-                            <!-- Button to add a beat (visible only to logged-in users) -->
-                            <a href="{{ route('beats.create') }}" class="btn btn-primary">Add Beat</a>
-                            @else
-                            <!-- Encourage guests to log in or register -->
-                            <p>
-                                <a href="{{ route('login') }}">Log in</a> or
-                                <a href="{{ route('register') }}">register</a> to add your own beats.
-                            </p>
-                            @endauth
+
                         </div>
                         @else
                         <!-- Beats List -->
@@ -58,6 +58,7 @@
                                         </p>
 
                                         @if(auth()->check() && auth()->id() === $beat->user_id)
+
                                         <!-- Edit and Delete Buttons for Owner -->
                                         <a href="{{ route('beats.edit', $beat) }}" class="btn btn-secondary">Edit</a>
                                         <!-- Delete form/button here -->

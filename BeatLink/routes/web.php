@@ -15,11 +15,10 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
-// Public routes: index, show
+// Beats index
 Route::get('/beats', [BeatController::class, 'index'])->name('beats.index');
-Route::get('/beats/{beat}', [BeatController::class, 'show'])->name('beats.show');
 
-// Authenticated routes: create, store, edit, update, destroy
+// Create route FIRST
 Route::middleware('auth')->group(function () {
     Route::get('/beats/create', [BeatController::class, 'create'])->name('beats.create');
     Route::post('/beats', [BeatController::class, 'store'])->name('beats.store');
@@ -27,6 +26,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/beats/{beat}', [BeatController::class, 'update'])->name('beats.update');
     Route::delete('/beats/{beat}', [BeatController::class, 'destroy'])->name('beats.destroy');
 });
+
+// Finally, the show route with the parameter
+Route::get('/beats/{beat}', [BeatController::class, 'show'])->name('beats.show');
+
 
 ///TO DO
 Route::get('/links', function () {

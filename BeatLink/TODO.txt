@@ -1,0 +1,2 @@
+- adauga buton de private, public pentru beats (poate in edit)
+- adauga search bar si filtre pentru pagina de beats

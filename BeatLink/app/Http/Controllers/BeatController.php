@@ -40,11 +40,11 @@ class BeatController extends Controller
 
         // Handle file uploads
         $audioPath = $request->hasFile('audio')
-            ? $request->file('audio')->store('public/beats')
+            ? $request->file('audio')->store('beats', 'public')
             : null;
 
         $picturePath = $request->hasFile('picture')
-            ? $request->file('picture')->store('public/beat_pictures')
+            ? $request->file('picture')->store('beat_pictures', 'public')
             : null;
 
         // Create the beat record
@@ -93,8 +93,29 @@ class BeatController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroyConfirm(Beat $beat)
     {
-        //
+        // Ensure the user can delete this beat
+        $this->authorize('delete', $beat);
+
+        return view('beats.destroy-confirm', compact('beat'));
+    }
+
+    public function destroy(Beat $beat)
+    {
+        $this->authorize('delete', $beat);
+
+        // if ($beat->file_path) {
+        //     Storage::delete($beat->file_path);
+        // }
+        // if ($beat->picture) {
+        //     Storage::delete($beat->picture);
+        // }
+
+        $beat->delete();
+
+        return redirect()
+            ->route('beats.index')
+            ->with('success', 'Beat deleted successfully.');
     }
 }

@@ -24,6 +24,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/beats', [BeatController::class, 'store'])->name('beats.store');
     Route::get('/beats/{beat}/edit', [BeatController::class, 'edit'])->name('beats.edit');
     Route::put('/beats/{beat}', [BeatController::class, 'update'])->name('beats.update');
+    Route::get('/beats/{beat}/destroy', [BeatController::class, 'destroyConfirm'])->name('beats.destroy.confirm');
     Route::delete('/beats/{beat}', [BeatController::class, 'destroy'])->name('beats.destroy');
 });
 

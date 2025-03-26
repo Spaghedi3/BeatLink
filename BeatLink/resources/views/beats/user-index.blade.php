@@ -14,21 +14,10 @@
             </div>
             @endif
 
-            @auth
-            <a href="{{ route('beats.create') }}" class="inline-block mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                Add Beat
-            </a>
-            @else
-            <p class="mb-4">
-                <a href="{{ route('login') }}">Log in</a> or
-                <a href="{{ route('register') }}">register</a> to add your own beats.
-            </p>
-            @endauth
-
             @if($beats->isEmpty())
             <div class="bg-gray-800 text-white p-6 rounded">
                 <h1 class="text-xl font-semibold mb-2">No Beats Yet</h1>
-                <p>It looks like there are no beats available. Why not create the first one?</p>
+                <p>It looks like there are no beats available. Seems like this user does not have any work posted yet!</p>
             </div>
             @else
             <!-- Responsive grid -->

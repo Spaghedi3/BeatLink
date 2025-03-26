@@ -64,6 +64,20 @@
                         <input type="text" class="form-control" id="type_beat" name="type_beat">
                     </div>
 
+
+                    <div class="mb-4">
+                        <label for="is_private" class="block font-semibold mb-1">Private?</label>
+                        <input
+                            type="checkbox"
+                            name="is_private"
+                            id="is_private"
+                            value="1"
+                            @checked(old('is_private'))>
+                        <span class="ml-2 text-sm text-gray-600">
+                            Check this box to make the beat private (only you can see it).
+                        </span>
+                    </div>
+
                     <!-- Submit -->
                     <button type="submit" class="btn btn-primary">
                         Save Beat

@@ -19,10 +19,17 @@ class BeatPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Beat $beat): bool
+    public function view(User $user, Beat $beat)
     {
-        return false;
+        // If the beat is public, anyone can view
+        if (! $beat->is_private) {
+            return true;
+        }
+
+        // If it's private, only the owner can view
+        return $user && $user->id === $beat->user_id;
     }
+
 
     /**
      * Determine whether the user can create models.

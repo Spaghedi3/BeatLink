@@ -14,6 +14,7 @@ class Beat extends Model
         'tags',
         'category',
         'type_beat',
+        'is_private',
     ];
 
     public function user()

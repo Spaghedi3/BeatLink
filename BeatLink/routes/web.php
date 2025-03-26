@@ -22,6 +22,7 @@ Route::get('/beats', [BeatController::class, 'index'])->name('beats.index');
 Route::middleware('auth')->group(function () {
     Route::get('/beats/create', [BeatController::class, 'create'])->name('beats.create');
     Route::post('/beats', [BeatController::class, 'store'])->name('beats.store');
+    Route::get('/{username}/beats', [BeatController::class, 'userBeats'])->name('user.beats');
     Route::get('/beats/{beat}/edit', [BeatController::class, 'edit'])->name('beats.edit');
     Route::put('/beats/{beat}', [BeatController::class, 'update'])->name('beats.update');
     Route::get('/beats/{beat}/destroy', [BeatController::class, 'destroyConfirm'])->name('beats.destroy.confirm');

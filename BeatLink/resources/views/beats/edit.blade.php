@@ -38,12 +38,7 @@
                     <!-- Audio File -->
                     <div class="mb-3">
                         <label for="audio" class="form-label">Audio File (mp3 or wav)</label>
-                        <input
-                            type="file"
-                            class="form-control bg-gray-100 text-gray-800"
-                            id="audio"
-                            name="audio"
-                            accept=".mp3,.wav">
+                        <input type="file" class="form-control" id="audio" name="audio" accept=".mp3,.wav">
                         @if($beat->file_path)
                         <p class="mt-2 text-sm text-gray-400">
                             Current file: <strong>{{ $beat->name }}</strong>
@@ -56,7 +51,7 @@
                         <label for="picture" class="form-label">Picture (optional)</label>
                         <input
                             type="file"
-                            class="form-control bg-gray-100 text-gray-800"
+                            class="form-control"
                             id="picture"
                             name="picture"
                             accept="image/*">

@@ -17,13 +17,29 @@ class BeatController extends Controller
      * Display a listing of the resource.
      */
     // BeatController@index
-    public function index()
+    public function index(Request $request)
     {
-        // Ensure this route is behind auth, so Auth::id() is always available
-        $beats = Beat::where('user_id', Auth::id())->get();
+        // Get the search query from the request, if provided
+        $query = $request->input('search');
+
+        // Start with the logged-in user's beats (both public and private)
+        $beatsQuery = Beat::where('user_id', Auth::id());
+
+        // If there's a search query, add filtering for name, tags, category, and type beat
+        if ($query) {
+            $beatsQuery->where(function ($q) use ($query) {
+                $q->where('name', 'like', '%' . $query . '%')
+                    ->orWhere('tags', 'like', '%' . $query . '%')
+                    ->orWhere('category', 'like', '%' . $query . '%')
+                    ->orWhere('type_beat', 'like', '%' . $query . '%');
+            });
+        }
+
+        $beats = $beatsQuery->get();
 
         return view('beats.index', compact('beats'));
     }
+
 
 
 
@@ -102,7 +118,7 @@ class BeatController extends Controller
 
         $request->validate([
             'name'       => 'required|string|max:255',
-            'audio'      => 'required|file|mimes:mp3,wav',
+            'audio'      => 'nullable|file|mimes:mp3,wav',
             'picture'    => 'nullable|image',
             'tags'       => 'nullable|string',
             'category'   => 'nullable|string',
@@ -112,7 +128,7 @@ class BeatController extends Controller
 
         $audioPath = $request->hasFile('audio')
             ? $request->file('audio')->store('beats', 'public')
-            : $beat->audio;
+            : $beat->file_path;
 
         $picturePath = $request->hasFile('picture')
             ? $request->file('picture')->store('beat_pictures', 'public')
@@ -162,23 +178,34 @@ class BeatController extends Controller
             ->with('success', 'Beat deleted successfully.');
     }
 
-    public function userBeats($username)
+    public function userBeats(Request $request, $username)
     {
-        // 1) Find the user by username
+        // Find the user by username.
         $user = User::where('username', $username)->firstOrFail();
 
-        // 2) Check if the logged-in user is the same as $user
-        if (Auth::check() && Auth::id() === $user->id) {
-            // The owner sees all their own beats
-            $beats = Beat::where('user_id', $user->id)->get();
-        } else {
-            // Other people see only the public beats
-            $beats = Beat::where('user_id', $user->id)
-                ->where('is_private', false)
-                ->get();
+        // Get the search term from the query string.
+        $search = $request->input('search');
+
+        // Start a query for that user's beats.
+        $beatsQuery = Beat::where('user_id', $user->id);
+
+        // If the logged-in user is NOT the owner, only show public beats.
+        if (!(Auth::check() && Auth::id() === $user->id)) {
+            $beatsQuery->where('is_private', false);
         }
 
-        // 3) Reuse your existing Blade
+        // If there's a search term, add filtering conditions.
+        if ($search) {
+            $beatsQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('tags', 'like', '%' . $search . '%')
+                    ->orWhere('category', 'like', '%' . $search . '%')
+                    ->orWhere('type_beat', 'like', '%' . $search . '%');
+            });
+        }
+
+        $beats = $beatsQuery->get();
+
         return view('beats.user-index', [
             'beats'     => $beats,
             'ownerName' => $user->username,

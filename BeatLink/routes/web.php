@@ -20,12 +20,16 @@ Route::get('/beats', [BeatController::class, 'index'])->name('beats.index');
 
 // Create route FIRST
 Route::middleware('auth')->group(function () {
-    Route::get('/beats/create', [BeatController::class, 'create'])->name('beats.create');
+    Route::put('/beats/{beat}', [BeatController::class, 'update'])->name('beats.update');
+
     Route::post('/beats', [BeatController::class, 'store'])->name('beats.store');
+
+    Route::get('/beats/create', [BeatController::class, 'create'])->name('beats.create');
     Route::get('/{username}/beats', [BeatController::class, 'userBeats'])->name('user.beats');
     Route::get('/beats/{beat}/edit', [BeatController::class, 'edit'])->name('beats.edit');
-    Route::put('/beats/{beat}', [BeatController::class, 'update'])->name('beats.update');
     Route::get('/beats/{beat}/destroy', [BeatController::class, 'destroyConfirm'])->name('beats.destroy.confirm');
+    Route::get('/beats/check-name', [BeatController::class, 'checkName'])->name('beats.check-name');
+
     Route::delete('/beats/{beat}', [BeatController::class, 'destroy'])->name('beats.destroy');
 });
 

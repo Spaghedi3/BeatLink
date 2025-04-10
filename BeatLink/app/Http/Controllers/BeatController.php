@@ -4,12 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-use App\Models\User;
+use Illuminate\Support\Str;
+
+use Illuminate\Support\Facades\Storage;
 
 use Illuminate\Support\Facades\Auth;
 
-use App\Models\Beat;
+use Illuminate\Validation\Rule;
 
+use App\Models\User;
+
+use App\Models\Beat;
 
 class BeatController extends Controller
 {
@@ -29,14 +34,18 @@ class BeatController extends Controller
         if ($query) {
             $beatsQuery->where(function ($q) use ($query) {
                 $q->where('name', 'like', '%' . $query . '%')
-                    ->orWhere('tags', 'like', '%' . $query . '%')
                     ->orWhere('category', 'like', '%' . $query . '%')
-                    ->orWhere('type_beat', 'like', '%' . $query . '%');
+                    ->orWhereHas('tags', function ($tagQ) use ($query) {
+                        $tagQ->where('name', 'like', '%' . $query . '%');
+                    })
+                    ->orWhereHas('types', function ($typeQ) use ($query) {
+                        $typeQ->where('name', 'like', '%' . $query . '%');
+                    });
             });
         }
 
+        $beatsQuery->with(['tags', 'types']);
         $beats = $beatsQuery->get();
-
         return view('beats.index', compact('beats'));
     }
 
@@ -55,35 +64,65 @@ class BeatController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'       => 'required|string|max:255',
-            'audio'      => 'required|file|mimes:mp3,wav',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('beats')->where(function ($query) {
+                    return $query->where('user_id', Auth::id());
+                }),
+            ],
+            'audio_file' => 'required_if:category,instrumental|file|mimetypes:audio/mpeg,audio/wav',
+            'audio_folder' => 'required_unless:category,instrumental|array',
+            'audio_folder.*' => 'file|mimetypes:audio/mpeg,audio/wav',
             'picture'    => 'nullable|image',
-            'tags'       => 'nullable|string',
             'category'   => 'nullable|string',
-            'type_beat'  => 'nullable|string',
             'is_private' => 'sometimes|boolean',
+        ], [
+            'name.unique' => 'You already have an entry with this name.',
         ]);
 
         // Handle file uploads
-        $audioPath = $request->hasFile('audio')
-            ? $request->file('audio')->store('beats', 'public')
-            : null;
+        $audioPath = null;
+        $folderFilesJson = null;
+        $username = Auth::user()->username;
+
+        if ($request->category === 'instrumental' && $request->hasFile('audio_file')) {
+            $originalName = $request->file('audio_file')->getClientOriginalName();
+            $audioPath = $request->file('audio_file')->store("beats/{$username}", 'public');
+        } elseif ($request->hasFile('audio_folder')) {
+            $folderFiles = [];
+            $sanitizedName = Str::slug($request->name);
+            foreach ($request->file('audio_folder') as $file) {
+                $originalName = $file->getClientOriginalName();
+                $path = str_replace('\\', '/', $file->storeAs("kits/{$username}/{$sanitizedName}", $originalName, 'public'));
+                $folderFiles[] = $path;
+            }
+
+            // Save all file paths as JSON
+            $audioPath = 'kits/' . $request->name; // still optional if you want
+            $folderFilesJson = json_encode($folderFiles);
+        }
 
         $picturePath = $request->hasFile('picture')
             ? $request->file('picture')->store('beat_pictures', 'public')
             : null;
 
         // Create the beat record
-        Beat::create([
-            'user_id'    => $request->user()->id,
-            'name'       => $request->name,
-            'file_path'  => $audioPath,
-            'picture'    => $picturePath,
-            'tags'       => $request->tags,
-            'category'   => $request->category,
-            'type_beat'  => $request->type_beat,
-            'is_private' => $request->boolean('is_private'),
+        $beat = Beat::create([
+            'user_id'       => $request->user()->id,
+            'name'          => $request->name,
+            'file_path'     => $audioPath,
+            'picture'       => $picturePath,
+            'category'      => $request->category,
+            'is_private'    => $request->boolean('is_private'),
+            'folder_files'  => $folderFilesJson ?? null,
         ]);
+
+        $this->attachTagsToBeat($beat, $request->tags);
+        $this->attachTypesToBeat($beat, $request->types);
+
+
 
         return redirect()
             ->route('beats.index')
@@ -115,20 +154,45 @@ class BeatController extends Controller
     public function update(Request $request, Beat $beat)
     {
         $this->authorize('update', $beat);
+        $folderFilesJson = $beat->folder_files; // fallback to old JSON if nothing new
 
         $request->validate([
-            'name'       => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('beats')->where(function ($query) {
+                    return $query->where('user_id', Auth::id());
+                })->ignore($beat->id),
+            ],
             'audio'      => 'nullable|file|mimes:mp3,wav',
             'picture'    => 'nullable|image',
-            'tags'       => 'nullable|string',
             'category'   => 'nullable|string',
-            'type_beat'  => 'nullable|string',
             'is_private' => 'sometimes|boolean',
+
+        ], [
+            'name.unique' => 'You already have an entry with this name.',
         ]);
 
-        $audioPath = $request->hasFile('audio')
-            ? $request->file('audio')->store('beats', 'public')
-            : $beat->file_path;
+        $username = Auth::user()->username;
+
+        if ($request->hasFile('audio_file')) {
+            $audioPath = $request->file('audio_file')->store("beats/{$username}", 'public');
+        } else {
+            $audioPath = $beat->file_path;
+        }
+
+        if ($request->hasFile('audio_folder')) {
+            $folderFiles = [];
+            $sanitizedName = Str::slug($request->name);
+            foreach ($request->file('audio_folder') as $file) {
+                $originalName = $file->getClientOriginalName();
+                $path = str_replace('\\', '/', $file->storeAs("kits/{$username}/{$sanitizedName}", $originalName, 'public'));
+                $folderFiles[] = $path;
+            }
+
+            $folderFilesJson = json_encode($folderFiles);
+        }
 
         $picturePath = $request->hasFile('picture')
             ? $request->file('picture')->store('beat_pictures', 'public')
@@ -138,15 +202,18 @@ class BeatController extends Controller
             'name'       => $request->name,
             'file_path'  => $audioPath,
             'picture'    => $picturePath,
-            'tags'       => $request->tags,
             'category'   => $request->category,
-            'type_beat'  => $request->type_beat,
             'is_private' => $request->boolean('is_private'),
+            'folder_files'  => $folderFilesJson,
         ]);
+
+        $this->attachTagsToBeat($beat, $request->tags);
+        $this->attachTypesToBeat($beat, $request->types);
+
 
         return redirect()
             ->route('beats.index')
-            ->with('success', 'Beat updated successfully.');
+            ->with('success', 'Updated successfully.');
     }
 
     /**
@@ -164,12 +231,19 @@ class BeatController extends Controller
     {
         $this->authorize('delete', $beat);
 
-        // if ($beat->file_path) {
-        //     Storage::delete($beat->file_path);
-        // }
-        // if ($beat->picture) {
-        //     Storage::delete($beat->picture);
-        // }
+        if ($beat->file_path) {
+            Storage::delete('public/' . $beat->file_path);
+        }
+        if ($beat->picture) {
+            Storage::delete('public/' . $beat->picture);
+        }
+
+        if ($beat->folder_files) {
+            $files = json_decode($beat->folder_files, true);
+            foreach ($files as $file) {
+                Storage::delete('public/' . $file);
+            }
+        }
 
         $beat->delete();
 
@@ -198,17 +272,68 @@ class BeatController extends Controller
         if ($search) {
             $beatsQuery->where(function ($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('tags', 'like', '%' . $search . '%')
                     ->orWhere('category', 'like', '%' . $search . '%')
-                    ->orWhere('type_beat', 'like', '%' . $search . '%');
+                    ->orWhereHas('types', function ($typeQ) use ($search) {
+                        $typeQ->where('name', 'like', '%' . $search . '%');
+                    })
+                    ->orWhereHas('tags', function ($tagQ) use ($search) {
+                        $tagQ->where('name', 'like', '%' . $search . '%');
+                    });
             });
         }
 
+        $beatsQuery->with(['tags', 'types']);
         $beats = $beatsQuery->get();
 
         return view('beats.user-index', [
             'beats'     => $beats,
             'ownerName' => $user->username,
         ]);
+    }
+
+    public function checkName(Request $request)
+    {
+        $query = Beat::where('user_id', Auth::id())
+            ->where('name', $request->query('name'));
+
+        if ($request->has('except_id')) {
+            $query->where('id', '!=', $request->query('except_id'));
+        }
+
+        $exists = $query->exists();
+
+        return response()->json(['exists' => $exists]);
+    }
+
+    private function attachTagsToBeat(Beat $beat, ?string $rawTags): void
+    {
+        if (!$rawTags) return;
+
+        $tags = collect(explode(',', $rawTags))
+            ->map(fn($tag) => trim(strtolower($tag)))
+            ->filter()
+            ->unique();
+
+        $tagIds = $tags->map(function ($tagName) {
+            return \App\Models\Tag::firstOrCreate(['name' => $tagName])->id;
+        });
+
+        $beat->tags()->sync($tagIds);
+    }
+
+    private function attachTypesToBeat(Beat $beat, ?string $rawTypes): void
+    {
+        if (!$rawTypes) return;
+
+        $types = collect(explode(',', $rawTypes))
+            ->map(fn($type) => trim(strtolower($type)))
+            ->filter()
+            ->unique();
+
+        $typeIds = $types->map(function ($typeName) {
+            return \App\Models\Type::firstOrCreate(['name' => $typeName])->id;
+        });
+
+        $beat->types()->sync($typeIds);
     }
 }

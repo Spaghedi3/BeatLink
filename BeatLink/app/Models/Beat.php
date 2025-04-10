@@ -11,14 +11,23 @@ class Beat extends Model
         'name',
         'file_path',
         'picture',
-        'tags',
         'category',
-        'type_beat',
         'is_private',
+        'folder_files',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'beat_tag');
+    }
+
+    public function types()
+    {
+        return $this->belongsToMany(Type::class, 'beat_type');
     }
 }

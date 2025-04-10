@@ -8,7 +8,7 @@
     <div class="py-12">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 text-gray-900 dark:text-gray-100">
-                <h3 class="text-lg font-semibold mb-4">Are you sure you want to delete this beat?</h3>
+                <h3 class="text-lg font-semibold mb-4">Are you sure you want to delete this?</h3>
                 <p class="mb-4">
                     <strong>Name:</strong> {{ $beat->name }}<br>
                     @if($beat->picture)
@@ -21,7 +21,7 @@
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                        Yes, Delete Beat
+                        Yes, Delete.
                     </button>
                     <a href="{{ route('beats.index') }}" class="ml-4 text-blue-500 hover:underline">
                         Cancel

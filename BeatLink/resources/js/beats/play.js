@@ -1,4 +1,4 @@
-export function togglePlay(beatId) {
+function togglePlay(beatId) {
     console.log("togglePlay called for beat:", beatId);
 
     const audio = document.getElementById(`audio-${beatId}`);
@@ -20,3 +20,5 @@ export function togglePlay(beatId) {
         pauseIcon.classList.add('hidden');
     }
 }
+
+window.togglePlay = togglePlay;

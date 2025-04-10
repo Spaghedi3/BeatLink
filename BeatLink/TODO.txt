@@ -1,2 +1,17 @@
-- adauga buton de private, public pentru beats (poate in edit)
-- adauga search bar si filtre pentru pagina de beats
+===================================
+--!!!! transforma aplicatia astfel incat pagina de beats sa fie pagina de "Tracks" ca sa poti integra si artistii in aplicatie, astfel sa isi posteze si ei 
+munca si sa primeasca recomandari de produceri, iar producerii sa primeasca recomandari de artisti.!!!! ai putea incerca cu o simpla coloana in baza de 
+date (isArtist sau isProducer) si asa se filtreaza usor dupa. 
+-- probabil va trebui alta pagina pentru artisti care sa se numeasca Tracks sau ceva SAAU
+sa schimb inmeniul de add... dar cred ca e mai ordonat sa fac complet alta pagina
+
+
+-- adauga buton pentru a selecta daca vrea sa vada loopkits, drumkits, multikits sau instrumentale
+
+-- termina pagina de foryou cu algoritmul de recomandari in functie de beat type, beat tag si timpul de ascultare al beaturilor cu 
+   acele taguri si tipuri
+
+-- cel mai probabil nu va fi doar pentru beaturi, dar si pentru trackurile artistilor (pana la urma e beatLINK nu beat)
+
+===================================
+- adauga functionalitate de foldere (buton de create folder si apoi iti alegi ce fisiere vrei sa pui in folder)

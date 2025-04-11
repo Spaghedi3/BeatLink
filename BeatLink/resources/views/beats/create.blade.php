@@ -89,8 +89,8 @@
 
                     <!-- Type Beat -->
                     <div class="mb-3">
-                        <label for="type_beat" class="form-label text-gray-800 dark:text-gray-200">Type (artist style)</label>
-                        <input type="text" class="form-control bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100" id="type_beat" name="type_beat">
+                        <label for="types" class="form-label text-gray-800 dark:text-gray-200">Type (artist style)</label>
+                        <input type="text" class="form-control bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100" id="types" name="types">
                     </div>
 
 

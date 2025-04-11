@@ -26,6 +26,7 @@ class BeatController extends Controller
     {
         // Get the search query from the request, if provided
         $query = $request->input('search');
+        $categories = $request->input('category');
 
         // Start with the logged-in user's beats (both public and private)
         $beatsQuery = Beat::where('user_id', Auth::id());
@@ -43,7 +44,9 @@ class BeatController extends Controller
                     });
             });
         }
-
+        if ($categories) {
+            $beatsQuery->whereIn('category', $categories);
+        }
         $beatsQuery->with(['tags', 'types']);
         $beats = $beatsQuery->get();
         return view('beats.index', compact('beats'));
@@ -121,7 +124,6 @@ class BeatController extends Controller
 
         $this->attachTagsToBeat($beat, $request->tags);
         $this->attachTypesToBeat($beat, $request->types);
-
 
 
         return redirect()
@@ -259,6 +261,7 @@ class BeatController extends Controller
 
         // Get the search term from the query string.
         $search = $request->input('search');
+        $categories = $request->input('category');
 
         // Start a query for that user's beats.
         $beatsQuery = Beat::where('user_id', $user->id);
@@ -281,9 +284,12 @@ class BeatController extends Controller
                     });
             });
         }
-
+        if ($categories) {
+            $beatsQuery->whereIn('category', $categories);
+        }
         $beatsQuery->with(['tags', 'types']);
         $beats = $beatsQuery->get();
+
 
         return view('beats.user-index', [
             'beats'     => $beats,

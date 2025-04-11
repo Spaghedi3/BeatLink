@@ -141,7 +141,7 @@
                             class="form-control bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
                             id="tags"
                             name="tags"
-                            value="{{ old('tags', $beat->tags) }}">
+                            value="{{ old('tags', $beat->tags ? $beat->tags->pluck('name')->implode(', ') : '') }}">
                     </div>
 
 
@@ -153,7 +153,7 @@
                             class="form-control bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
                             id="type_beat"
                             name="type_beat"
-                            value="{{ old('type_beat', $beat->type_beat) }}">
+                            value="{{ old('type_beat', $beat->types ? $beat->types->pluck('name')->implode(', ') : '') }}">
                     </div>
 
 

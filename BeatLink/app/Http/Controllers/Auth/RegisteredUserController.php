@@ -33,12 +33,14 @@ class RegisteredUserController extends Controller
             'username' => 'required|string|regex:/^[A-Za-z0-9_]+$/|unique:users,username',
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'is_artist' => 'required|boolean',
         ]);
 
         $user = User::create([
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'is_artist' => $request->is_artist,
         ]);
 
         event(new Registered($user));

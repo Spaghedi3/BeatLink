@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Beat extends Model
+class Track extends Model
 {
     protected $fillable = [
         'user_id',
@@ -14,6 +14,7 @@ class Beat extends Model
         'category',
         'is_private',
         'folder_files',
+        'type',
     ];
 
     public function user()

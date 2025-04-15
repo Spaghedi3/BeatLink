@@ -15,26 +15,26 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
-// Beats index
-Route::get('/beats', [BeatController::class, 'index'])->name('beats.index');
+use App\Http\Controllers\TrackController;
+
+// Tracks index
+Route::get('/tracks', [TrackController::class, 'index'])->name('tracks.index');
 
 // Create route FIRST
 Route::middleware('auth')->group(function () {
-    Route::put('/beats/{beat}', [BeatController::class, 'update'])->name('beats.update');
-
-    Route::post('/beats', [BeatController::class, 'store'])->name('beats.store');
-
-    Route::get('/beats/create', [BeatController::class, 'create'])->name('beats.create');
-    Route::get('/{username}/beats', [BeatController::class, 'userBeats'])->name('user.beats');
-    Route::get('/beats/{beat}/edit', [BeatController::class, 'edit'])->name('beats.edit');
-    Route::get('/beats/{beat}/destroy', [BeatController::class, 'destroyConfirm'])->name('beats.destroy.confirm');
-    Route::get('/beats/check-name', [BeatController::class, 'checkName'])->name('beats.check-name');
-
-    Route::delete('/beats/{beat}', [BeatController::class, 'destroy'])->name('beats.destroy');
+    Route::put('/tracks/{track}', [TrackController::class, 'update'])->name('tracks.update');
+    Route::post('/tracks', [TrackController::class, 'store'])->name('tracks.store');
+    Route::get('/tracks/create', [TrackController::class, 'create'])->name('tracks.create');
+    Route::get('/{username}/tracks', [TrackController::class, 'userTracks'])->name('user.tracks');
+    Route::get('/tracks/{track}/edit', [TrackController::class, 'edit'])->name('tracks.edit');
+    Route::get('/tracks/{track}/destroy', [TrackController::class, 'destroyConfirm'])->name('tracks.destroy.confirm');
+    Route::get('/tracks/check-name', [TrackController::class, 'checkName'])->name('tracks.check-name');
+    Route::delete('/tracks/{track}', [TrackController::class, 'destroy'])->name('tracks.destroy');
 });
 
 // Finally, the show route with the parameter
-Route::get('/beats/{beat}', [BeatController::class, 'show'])->name('beats.show');
+Route::get('/tracks/{track}', [TrackController::class, 'show'])->name('tracks.show');
+
 
 
 ///TO DO

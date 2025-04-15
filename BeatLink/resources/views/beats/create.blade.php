@@ -29,7 +29,7 @@
                     </div>
 
                     <p id="name-warning" class="text-red-500 text-sm mt-1"></p>
-
+                    @if (!auth()->user()->is_artist)
                     <!-- Category -->
                     <div class="mb-3">
                         <label for="category" class="form-label text-gray-800 dark:text-gray-200">Category</label>
@@ -42,6 +42,7 @@
                             <!-- more if needed -->
                         </select>
                     </div>
+                    @endif
 
                     <!-- Audio File -->
                     <div id="add-beat" class="mb-3">

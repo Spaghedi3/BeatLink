@@ -135,8 +135,13 @@ class TrackController extends Controller
 
         if (Auth::user()->is_artist) {
             $request->validate([
-                'name' => 'required|string|max:255|unique:tracks,name,NULL,id,user_id,' . Auth::id(),
-                'audio_file' => 'required|file|mimetypes:audio/mpeg,audio/wav',
+                'name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('tracks')->where(fn($q) => $q->where('user_id', Auth::id()))->ignore($track->id),
+                ],
+                'audio_file' => 'nullable|file|mimetypes:audio/mpeg,audio/wav',
                 'picture' => 'nullable|image',
                 'is_private' => 'sometimes|boolean',
             ]);

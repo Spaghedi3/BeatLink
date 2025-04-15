@@ -1,8 +1,8 @@
-<!-- resources/views/beats/create.blade.php -->
+<!-- resources/views/tracks/create.blade.php -->
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Add a New Beat') }}
+            {{ __('Add a New Track') }}
         </h2>
     </x-slot>
 
@@ -20,7 +20,7 @@
             @endif
 
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
-                <form action="{{ route('beats.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('tracks.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <!-- Name -->
                     <div class="mb-3">
@@ -45,7 +45,7 @@
                     @endif
 
                     <!-- Audio File -->
-                    <div id="add-beat" class="mb-3">
+                    <div id="add-track" class="mb-3">
                         <label for="audio" class="form-label text-gray-800 dark:text-gray-200">Audio File (.mp3 or .wav)</label>
                         <input type="file" class="block w-full text-sm text-gray-500 
               file:mr-4 file:py-2 file:px-4 
@@ -88,7 +88,7 @@
                         <input type="text" class="form-control bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100" id="tags" name="tags">
                     </div>
 
-                    <!-- Type Beat -->
+                    <!-- Type -->
                     <div class="mb-3">
                         <label for="types" class="form-label text-gray-800 dark:text-gray-200">Type (artist style)</label>
                         <input type="text" class="form-control bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100" id="types" name="types">
@@ -104,7 +104,7 @@
                             value="1"
                             @checked(old('is_private'))>
                         <span class="ml-2 text-sm text-gray-600">
-                            Check this box to make the beat private (only you can see it).
+                            Check this box to make the track private (only you can see it).
                         </span>
                     </div>
 

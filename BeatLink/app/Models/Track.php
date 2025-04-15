@@ -24,11 +24,11 @@ class Track extends Model
 
     public function tags()
     {
-        return $this->belongsToMany(Tag::class, 'beat_tag');
+        return $this->belongsToMany(Tag::class, 'track_tag');
     }
 
     public function types()
     {
-        return $this->belongsToMany(Type::class, 'beat_type');
+        return $this->belongsToMany(Type::class, 'track_type');
     }
 }

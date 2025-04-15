@@ -1,8 +1,8 @@
-<!-- resources/views/layouts/add-beat.blade.php -->
+<!-- resources/views/layouts/add-track.blade.php -->
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Add Beat') }}
+            {{ __('Add Track') }}
         </h2>
     </x-slot>
 

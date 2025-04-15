@@ -13,8 +13,8 @@ if (nameInput) {
             return;
         }
 
-        const beatId = "{{ $beat->id ?? '' }}"; // works only in edit.blade.php
-        fetch(`/beats/check-name?name=${encodeURIComponent(name)}&except_id=${beatId}`)
+        const trackId = "{{ $track->id ?? '' }}"; // works only in edit.blade.php
+        fetch(`/tracks/check-name?name=${encodeURIComponent(name)}&except_id=${trackId}`)
             .then(res => res.json())
             .then(data => {
                 if (data.exists) {

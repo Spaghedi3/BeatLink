@@ -13,7 +13,7 @@
             </div>
             @endif
 
-            @include('beats._beats-grid', ['beats' => $beats, 'showAddButton' => true])
+            @include('tracks._tracks-grid', ['tracks' => $tracks, 'showAddButton' => true])
         </div>
     </div>
 </x-app-layout>

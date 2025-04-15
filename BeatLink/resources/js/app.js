@@ -1,12 +1,12 @@
 import './bootstrap';
 
-import './beats/play.js';
+import './tracks/play.js';
 
-import './beats/hover-player.js';
+import './tracks/hover-player.js';
 
-import './beats/form-toggle.js';
+import './tracks/form-toggle.js';
 
-import './beats/name-exists.js';
+import './tracks/name-exists.js';
 
 import Alpine from 'alpinejs';
 

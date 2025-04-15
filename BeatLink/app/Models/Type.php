@@ -8,8 +8,8 @@ class Type extends Model
 {
     protected $fillable = ['name'];
 
-    public function beats()
+    public function tracks()
     {
-        return $this->belongsToMany(Beat::class, 'beat_type');
+        return $this->belongsToMany(Track::class, 'track_type');
     }
 }

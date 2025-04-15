@@ -39,12 +39,12 @@ class TrackController extends Controller
         $tracksQuery->with(['tags', 'types']);
         $tracks = $tracksQuery->get();
 
-        return view('beats.index', compact('tracks')); // you can rename view later
+        return view('tracks.index', compact('tracks')); // you can rename view later
     }
 
     public function create()
     {
-        return view('beats.create'); // you can rename view later
+        return view('tracks.create'); // you can rename view later
     }
 
     public function store(Request $request)
@@ -120,7 +120,7 @@ class TrackController extends Controller
     public function edit(Track $track)
     {
         $this->authorize('update', $track);
-        return view('beats.edit', compact('track')); // update view name later
+        return view('tracks.edit', compact('track')); // update view name later
     }
 
     public function update(Request $request, Track $track)
@@ -198,7 +198,7 @@ class TrackController extends Controller
     public function destroyConfirm(Track $track)
     {
         $this->authorize('delete', $track);
-        return view('beats.destroy-confirm', compact('track')); // update view name later
+        return view('tracks.destroy-confirm', compact('track')); // update view name later
     }
 
     public function destroy(Track $track)
@@ -254,9 +254,11 @@ class TrackController extends Controller
         $tracksQuery->with(['tags', 'types']);
         $tracks = $tracksQuery->get();
 
-        return view('beats.user-index', [ // update view name later
-            'tracks' => $tracks,
-            'ownerName' => $user->username,
+        return view('tracks.user-index', [
+            'tracks'     => $tracks,
+            'ownerName'  => $user->username,
+            'owner'      => $user,            // track owner (the profile being viewed)
+            'viewer'     => Auth::user(),     // currently logged in user
         ]);
     }
 

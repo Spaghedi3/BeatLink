@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\BeatController;
+use App\Http\Controllers\TrackController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,8 +15,6 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
-use App\Http\Controllers\TrackController;
-
 // Tracks index
 Route::get('/tracks', [TrackController::class, 'index'])->name('tracks.index');
 
@@ -25,7 +23,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/tracks/{track}', [TrackController::class, 'update'])->name('tracks.update');
     Route::post('/tracks', [TrackController::class, 'store'])->name('tracks.store');
     Route::get('/tracks/create', [TrackController::class, 'create'])->name('tracks.create');
-    Route::get('/{username}/tracks', [TrackController::class, 'userTracks'])->name('user.tracks');
+    Route::get('/{username}/tracks', [TrackController::class, 'userTracks'])->name('user.tracks'); // consider renaming method later
     Route::get('/tracks/{track}/edit', [TrackController::class, 'edit'])->name('tracks.edit');
     Route::get('/tracks/{track}/destroy', [TrackController::class, 'destroyConfirm'])->name('tracks.destroy.confirm');
     Route::get('/tracks/check-name', [TrackController::class, 'checkName'])->name('tracks.check-name');

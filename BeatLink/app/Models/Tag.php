@@ -8,8 +8,8 @@ class Tag extends Model
 {
     protected $fillable = ['name']; // optional: allows mass assignment
 
-    public function beats()
+    public function tracks()
     {
-        return $this->belongsToMany(Beat::class, 'beat_tag');
+        return $this->belongsToMany(track::class, 'track_tag');
     }
 }

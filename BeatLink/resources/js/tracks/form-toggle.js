@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const category = document.getElementById('category');
-    const fileSection = document.getElementById('add-beat');
+    const fileSection = document.getElementById('add-track');
     const folderSection = document.getElementById('add-folder');
     const fileInput = document.getElementById('audio_file');
     const folderInput = document.getElementById('audio_folder');

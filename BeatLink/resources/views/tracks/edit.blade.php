@@ -1,8 +1,8 @@
-<!-- resources/views/beats/edit.blade.php -->
+<!-- resources/views/tracks/edit.blade.php -->
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Edit Beat') }}
+            {{ __('Edit Track') }}
         </h2>
     </x-slot>
 
@@ -19,28 +19,28 @@
             @endif
 
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 text-gray-900 dark:text-gray-100">
-                <form action="{{ route('beats.update', $beat) }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('tracks.update', $track) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
 
                     <!-- Name -->
                     <div class="mb-3">
-                        <label for="name" class="form-label">Beat Name</label>
+                        <label for="name" class="form-label">Track Name</label>
                         <input
                             type="text"
                             class="form-control bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
                             id="name"
                             name="name"
-                            value="{{ old('name', $beat->name) }}"
+                            value="{{ old('name', $track->name) }}"
                             required>
                     </div>
-                    <input type="hidden" id="original_name" value="{{ $beat->name }}">
+                    <input type="hidden" id="original_name" value="{{ $track->name }}">
                     <p id="name-warning" class="text-red-500 text-sm mt-1"></p>
                     @if (!auth()->user()->is_artist)
                     <!-- Category -->
                     <div class="mb-3">
                         <label for="category" class="form-label text-gray-800 dark:text-gray-200">Category</label>
-                        @if($beat->category === 'instrumental')
+                        @if($track->category !== 'loopkit' && $track->category !== 'drumkit' && $track->category !== 'multikit')
                         <!-- Read-only category (instrumental) -->
                         <input type="text"
                             name="category"
@@ -54,15 +54,15 @@
                             id="category"
                             name="category"
                             required>
-                            <option value="loopkit" {{ old('category', $beat->category) === 'loopkit' ? 'selected' : '' }}>Loopkit</option>
-                            <option value="drumkit" {{ old('category', $beat->category) === 'drumkit' ? 'selected' : '' }}>Drumkit</option>
-                            <option value="fx" {{ old('category', $beat->category) === 'fx' ? 'selected' : '' }}>MultiKit</option>
+                            <option value="loopkit" {{ old('category', $track->category) === 'loopkit' ? 'selected' : '' }}>Loopkit</option>
+                            <option value="drumkit" {{ old('category', $track->category) === 'drumkit' ? 'selected' : '' }}>Drumkit</option>
+                            <option value="fx" {{ old('category', $track->category) === 'fx' ? 'selected' : '' }}>MultiKit</option>
                         </select>
                         @endif
                     </div>
                     @endif
 
-                    @if($beat->category === 'instrumental')
+                    @if($track->category !== 'loopkit' && $track->category !== 'drumkit' && $track->category !== 'multikit')
                     <!-- Audio File input -->
                     <div class="mb-3">
                         <label for="audio_file" class="form-label text-gray-800 dark:text-gray-200">Audio File (.mp3 or .wav)</label>
@@ -76,9 +76,9 @@
                       file:text-sm file:font-semibold
                       file:bg-blue-50 file:text-blue-700
                       hover:file:bg-blue-100">
-                        @if($beat->file_path)
+                        @if($track->file_path)
                         <p class="mt-2 text-sm text-gray-400">
-                            Current file: <strong>{{ basename($beat->file_path) }}</strong>
+                            Current file: <strong>{{ basename($track->file_path) }}</strong>
                         </p>
                         @endif
                     </div>
@@ -106,9 +106,9 @@
                         </div>
                         @endif
 
-                        @if($beat->folder_files)
+                        @if($track->folder_files)
                         <p class="mt-2 text-sm text-gray-400">
-                            {{ count(json_decode($beat->folder_files, true)) }} file(s) uploaded
+                            {{ count(json_decode($track->folder_files, true)) }} file(s) uploaded
                         </p>
                         @endif
                     </div>
@@ -123,10 +123,10 @@
               file:text-sm file:font-semibold 
               file:bg-blue-50 file:text-blue-700 
               hover:file:bg-blue-100" id="picture" name="picture" accept="image/*">
-                        @if($beat->picture)
+                        @if($track->picture)
                         <div class="mt-2">
                             <img
-                                src="{{ Storage::url($beat->picture) }}"
+                                src="{{ Storage::url($track->picture) }}"
                                 alt="Current Picture"
                                 class="h-32 w-32 object-cover">
                         </div>
@@ -141,19 +141,19 @@
                             class="form-control bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
                             id="tags"
                             name="tags"
-                            value="{{ old('tags', $beat->tags ? $beat->tags->pluck('name')->implode(', ') : '') }}">
+                            value="{{ old('tags', $track->tags ? $track->tags->pluck('name')->implode(', ') : '') }}">
                     </div>
 
 
-                    <!-- Type Beat -->
+                    <!-- Type -->
                     <div class="mb-3">
-                        <label for="type_beat" class="form-label">Type (artist style)</label>
+                        <label for="type_track" class="form-label">Type (artist style)</label>
                         <input
                             type="text"
                             class="form-control bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
-                            id="type_beat"
-                            name="type_beat"
-                            value="{{ old('type_beat', $beat->types ? $beat->types->pluck('name')->implode(', ') : '') }}">
+                            id="type_track"
+                            name="type_track"
+                            value="{{ old('type_track', $track->types ? $track->types->pluck('name')->implode(', ') : '') }}">
                     </div>
 
 
@@ -164,17 +164,17 @@
                             name="is_private"
                             id="is_private"
                             value="1"
-                            @checked(old('is_private', $beat->is_private ?? false))
+                            @checked(old('is_private', $track->is_private ?? false))
                         >
                         <span class="ml-2 text-sm text-gray-600">
-                            Check this box to make the beat private (only you can see it).
+                            Check this box to make the track private (only you can see it).
                         </span>
                     </div>
 
                     <button type="submit" id="updateBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                         Update
                     </button>
-                    <a href="{{ route('beats.index') }}" class="ml-4 text-blue-500 hover:underline">
+                    <a href="{{ route('tracks.index') }}" class="ml-4 text-blue-500 hover:underline">
                         Cancel
                     </a>
                 </form>

@@ -3,8 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use App\Models\Beat;
-use App\Policies\BeatPolicy;
+use App\Models\Track;
+use App\Policies\TrackPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -14,7 +14,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        Beat::class => BeatPolicy::class,
+        Track::class => TrackPolicy::class,
     ];
 
     /**

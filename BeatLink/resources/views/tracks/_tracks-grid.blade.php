@@ -104,6 +104,19 @@
                             d="M10.5 6h.75m-2.25 0h1.5M5.25 6a2.25 2.25 0 104.5 0v0a2.25 2.25 0 00-4.5 0v0zm0 0h4.5M13.5 18h.75m-2.25 0h1.5M8.25 18a2.25 2.25 0 104.5 0v0a2.25 2.25 0 00-4.5 0v0zm0 0h4.5M16.5 12h.75m-2.25 0h1.5M11.25 12a2.25 2.25 0 104.5 0v0a2.25 2.25 0 00-4.5 0v0zm0 0h4.5" />
                     </svg>
                 </a>
+                @else
+                <button
+                    class="reaction-button {{ $track->userReactedWith === 'love' ? 'text-red-500' : '' }}"
+                    data-track-id="{{ $track->id }}"
+                    data-owner-id="{{ $track->user_id }}"
+                    data-reaction="love">
+                    <!-- Like icon SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="feather feather-heart">
+                        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z" />
+                    </svg>
+                </button>
                 @endif
                 @if($track->category !== 'loopkit' && $track->category !== 'drumkit' && $track->category !== 'multikit')
                 <!-- Custom Play/Pause button -->
@@ -133,6 +146,19 @@
                             d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </a>
+                @else
+                <button
+                    class="reaction-button {{ $track->userReactedWith === 'hate' ? 'text-red-500' : '' }}"
+                    data-track-id="{{ $track->id }}"
+                    data-owner-id="{{ $track->user_id }}"
+                    data-reaction="hate">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="feather feather-heart-crack">
+                        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z" />
+                        <path d="M12 8l-2 3 2 2-2 3 2 2" />
+                    </svg>
+                </button>
                 @endif
             </div>
         </div>
@@ -148,3 +174,8 @@
         @endif
     </div>
 </div>
+<script>
+    window.routes = {
+        react: "{{ route('reaction.react') }}"
+    };
+</script>

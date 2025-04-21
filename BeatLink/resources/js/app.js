@@ -8,6 +8,8 @@ import './tracks/form-toggle.js';
 
 import './tracks/name-exists.js';
 
+import './tracks/react.js';
+
 import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;

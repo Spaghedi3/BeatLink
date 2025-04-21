@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Tag extends Model
 {
-    protected $fillable = ['name']; // optional: allows mass assignment
+    protected $fillable = ['name'];
 
     public function tracks()
     {

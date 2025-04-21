@@ -38,7 +38,7 @@
                             <option value="instrumental">Instrumental</option>
                             <option value="loopkit">Loopkit</option>
                             <option value="drumkit">Drumkit</option>
-                            <option value="fx">MultiKit</option>
+                            <option value="multikit">MultiKit</option>
                             <!-- more if needed -->
                         </select>
                     </div>

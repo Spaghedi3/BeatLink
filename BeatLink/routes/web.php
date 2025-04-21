@@ -16,21 +16,21 @@ Route::get('/', function () {
 })->name('welcome');
 
 // Tracks index
-Route::get('/tracks', [TrackController::class, 'index'])->name('tracks.index');
+Route::get('/tracks', [TrackController::class, 'index'])->middleware('auth')->name('tracks.index');
 
 // Create route FIRST
 Route::middleware('auth')->group(function () {
     Route::put('/tracks/{track}', [TrackController::class, 'update'])->name('tracks.update');
     Route::post('/tracks', [TrackController::class, 'store'])->name('tracks.store');
+    Route::post('/react', [TrackController::class, 'react'])->name('reaction.react');
     Route::get('/tracks/create', [TrackController::class, 'create'])->name('tracks.create');
-    Route::get('/{username}/tracks', [TrackController::class, 'userTracks'])->name('user.tracks'); // consider renaming method later
+    Route::get('/{username}/tracks', [TrackController::class, 'userTracks'])->name('user.tracks');
     Route::get('/tracks/{track}/edit', [TrackController::class, 'edit'])->name('tracks.edit');
     Route::get('/tracks/{track}/destroy', [TrackController::class, 'destroyConfirm'])->name('tracks.destroy.confirm');
     Route::get('/tracks/check-name', [TrackController::class, 'checkName'])->name('tracks.check-name');
     Route::delete('/tracks/{track}', [TrackController::class, 'destroy'])->name('tracks.destroy');
 });
 
-// Finally, the show route with the parameter
 Route::get('/tracks/{track}', [TrackController::class, 'show'])->name('tracks.show');
 
 

@@ -56,7 +56,7 @@
                             required>
                             <option value="loopkit" {{ old('category', $track->category) === 'loopkit' ? 'selected' : '' }}>Loopkit</option>
                             <option value="drumkit" {{ old('category', $track->category) === 'drumkit' ? 'selected' : '' }}>Drumkit</option>
-                            <option value="fx" {{ old('category', $track->category) === 'fx' ? 'selected' : '' }}>MultiKit</option>
+                            <option value="multikit" {{ old('category', $track->category) === 'multikit' ? 'selected' : '' }}>MultiKit</option>
                         </select>
                         @endif
                     </div>

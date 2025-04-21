@@ -6,16 +6,24 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+
 use Illuminate\Validation\Rule;
 use App\Models\User;
 use App\Models\Track;
+use App\Models\Reaction;
 
 class TrackController extends Controller
 {
     public function index(Request $request)
     {
-        if (Auth::user()->is_artist) {
-            $request->request->remove('category');
+        if (Auth::check()) {
+
+            if (Auth::user()->is_artist) {
+                $request->request->remove('category');
+            }
+        } else {
+            return redirect('/login');
         }
 
         $query = $request->input('search');
@@ -132,35 +140,39 @@ class TrackController extends Controller
 
         $this->authorize('update', $track);
         $folderFilesJson = $track->folder_files;
-
-        if (Auth::user()->is_artist) {
-            $request->validate([
-                'name' => [
-                    'required',
-                    'string',
-                    'max:255',
-                    Rule::unique('tracks')->where(fn($q) => $q->where('user_id', Auth::id()))->ignore($track->id),
-                ],
-                'audio_file' => 'nullable|file|mimetypes:audio/mpeg,audio/wav',
-                'picture' => 'nullable|image',
-                'is_private' => 'sometimes|boolean',
-            ]);
+        if (Auth::check()) {
+            if (Auth::user()->is_artist) {
+                $request->validate([
+                    'name' => [
+                        'required',
+                        'string',
+                        'max:255',
+                        Rule::unique('tracks')->where(fn($q) => $q->where('user_id', Auth::id()))->ignore($track->id),
+                    ],
+                    'audio_file' => 'nullable|file|mimetypes:audio/mpeg,audio/wav',
+                    'picture' => 'nullable|image',
+                    'is_private' => 'sometimes|boolean',
+                ]);
+            } else {
+                $request->validate([
+                    'name' => [
+                        'required',
+                        'string',
+                        'max:255',
+                        Rule::unique('tracks')->where(fn($q) => $q->where('user_id', Auth::id()))->ignore($track->id),
+                    ],
+                    'audio_file' => 'nullable|file|mimetypes:audio/mpeg,audio/wav',
+                    'picture'    => 'nullable|image',
+                    'category'   => 'nullable|string',
+                    'is_private' => 'sometimes|boolean',
+                ], [
+                    'name.unique' => 'You already have an entry with this name.',
+                ]);
+            }
         } else {
-            $request->validate([
-                'name' => [
-                    'required',
-                    'string',
-                    'max:255',
-                    Rule::unique('tracks')->where(fn($q) => $q->where('user_id', Auth::id()))->ignore($track->id),
-                ],
-                'audio_file' => 'nullable|file|mimetypes:audio/mpeg,audio/wav',
-                'picture'    => 'nullable|image',
-                'category'   => 'nullable|string',
-                'is_private' => 'sometimes|boolean',
-            ], [
-                'name.unique' => 'You already have an entry with this name.',
-            ]);
+            return redirect('/login');
         }
+
 
         $username = Auth::user()->username;
 
@@ -303,5 +315,47 @@ class TrackController extends Controller
         $typeIds = $types->map(fn($typeName) => \App\Models\Type::firstOrCreate(['name' => $typeName])->id);
 
         $track->types()->sync($typeIds);
+    }
+
+    public function react(Request $request)
+    {
+        try {
+            $request->validate([
+                'owner_id' => 'required|exists:users,id',
+                'track_id' => 'required|exists:tracks,id',
+                'reaction' => ['required', Rule::in(['love', 'hate'])],
+            ]);
+
+            $visitorId = Auth::id();
+
+            $existing = Reaction::where([
+                'owner_id' => $request->owner_id,
+                'user_id' => $visitorId,
+                'track_id' => $request->track_id,
+            ])->first();
+
+            if ($existing) {
+                if ($existing->reaction === $request->reaction) {
+                    $existing->delete(); // remove if clicked again
+                    return response()->json(['status' => 'removed', 'reaction' => $request->reaction]);
+                } else {
+                    $existing->reaction = $request->reaction; // switch reaction
+                    $existing->save();
+                    return response()->json(['status' => 'switched', 'reaction' => $request->reaction]);
+                }
+            }
+
+            // No reaction yet — create new
+            Reaction::create([
+                'owner_id' => $request->owner_id,
+                'user_id' => $visitorId,
+                'track_id' => $request->track_id,
+                'reaction' => $request->reaction,
+            ]);
+
+            return response()->json(['status' => 'reacted', 'reaction' => $request->reaction]);
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
     }
 }

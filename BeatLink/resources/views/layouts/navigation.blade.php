@@ -23,11 +23,70 @@
                         {{ __('Tracks') }}
                     </x-nav-link>
                 </div>
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link :href="route('tracks.favorites')" :active="request()->routeIs('tracks.favorites')">
+                        {{ __('Favorites') }}
+                    </x-nav-link>
+                </div>
             </div>
 
             <!-- Right side: Settings / Auth -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <div class="hidden sm:flex sm:items-center sm:ms-6 space-x-4 overflow-visible">
                 @auth
+                <div class="relative w-6 h-6 -ml-1.5 mt-[2px]">
+                    @php $unread = auth()->user()->unreadNotifications->count(); @endphp
+
+                    <x-dropdown align="right" width="48">
+                        <x-slot name="trigger">
+                            <button class="relative">
+                                <!-- Bell Icon -->
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor" class="w-6 h-6 text-gray-400 hover:text-white">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M14.25 17h-4.5m9-6V8a6.75 6.75 0 10-13.5 0v3a2.25 2.25 0 01-.75 1.687l-.75.563a.75.75 0 00.75 1.25h15a.75.75 0 00.75-1.25l-.75-.563A2.25 2.25 0 0119.5 11z" />
+                                </svg>
+                                @if($unread)
+                                <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-xs 
+                     text-white rounded-full flex items-center justify-center">
+                                    {{ $unread }}
+                                </span>
+                                @endif
+                            </button>
+                        </x-slot>
+
+                        <x-slot name="content">
+                            <div class="py-1">
+                                @forelse(auth()->user()->unreadNotifications as $note)
+                                @php
+                                $data = $note->data;
+                                $actorUsername = $data['actor_username']
+                                ?? \App\Models\User::find($data['actor_id'])->username;
+                                @endphp
+
+                                <x-dropdown-link :href="route('notifications.read.one', $note->id)">
+                                    {{ $note->data['message'] }}
+                                    <span class="block text-xs text-gray-500">
+                                        {{ $note->created_at->diffForHumans() }}
+                                    </span>
+                                </x-dropdown-link>
+
+                                @empty
+                                <div class="px-4 py-2 text-sm text-gray-500">
+                                    No new notifications
+                                </div>
+                                @endforelse
+                                <form action="{{ route('notifications.read.all') }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="text-sm text-blue-500 hover:underline">
+                                        Mark all as read
+                                    </button>
+                                </form>
+                            </div>
+                        </x-slot>
+                    </x-dropdown>
+                </div>
+
                 <!-- Authenticated user dropdown -->
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">

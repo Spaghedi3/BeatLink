@@ -12,24 +12,25 @@ use Illuminate\Validation\Rule;
 use App\Models\User;
 use App\Models\Track;
 use App\Models\Reaction;
+use App\Notifications\ReactionNotification;
 
 class TrackController extends Controller
 {
     public function index(Request $request)
     {
-        if (Auth::check()) {
-
-            if (Auth::user()->is_artist) {
-                $request->request->remove('category');
-            }
-        } else {
+        if (!Auth::check()) {
             return redirect('/login');
         }
 
         $query = $request->input('search');
         $categories = $request->input('category');
 
-        $tracksQuery = Track::where('user_id', Auth::id());
+        $tracksQuery = Track::query();
+
+        // If artist: only show their own tracks
+        if (Auth::user()) {
+            $tracksQuery->where('user_id', Auth::id());
+        }
 
         if ($query) {
             $tracksQuery->where(function ($q) use ($query) {
@@ -40,15 +41,23 @@ class TrackController extends Controller
             });
         }
 
-        if ($categories) {
+        if ($categories && !Auth::user()->is_artist) {
             $tracksQuery->whereIn('category', $categories);
         }
 
-        $tracksQuery->with(['tags', 'types']);
+        $tracksQuery->with(['tags', 'types', 'user', 'reactions']);
         $tracks = $tracksQuery->get();
 
-        return view('tracks.index', compact('tracks')); // you can rename view later
+        foreach ($tracks as $track) {
+            $track->userReactedWith = $track->reactions
+                ->firstWhere('user_id', Auth::id())
+                ->reaction ?? null;
+        }
+
+
+        return view('tracks.index', compact('tracks'));
     }
+
 
     public function create()
     {
@@ -268,9 +277,13 @@ class TrackController extends Controller
             $tracksQuery->whereIn('category', $categories);
         }
 
-        $tracksQuery->with(['tags', 'types']);
+        $tracksQuery->with(['tags', 'types', 'user']);
         $tracks = $tracksQuery->get();
-
+        foreach ($tracks as $track) {
+            $track->userReactedWith = Reaction::where('track_id', $track->id)
+                ->where('user_id', Auth::id())
+                ->value('reaction');
+        }
         return view('tracks.user-index', [
             'tracks'     => $tracks,
             'ownerName'  => $user->username,
@@ -319,43 +332,70 @@ class TrackController extends Controller
 
     public function react(Request $request)
     {
-        try {
-            $request->validate([
-                'owner_id' => 'required|exists:users,id',
-                'track_id' => 'required|exists:tracks,id',
-                'reaction' => ['required', Rule::in(['love', 'hate'])],
-            ]);
+        $request->validate([
+            'owner_id' => 'required|exists:users,id',
+            'track_id' => 'required|exists:tracks,id',
+            'reaction' => ['required', Rule::in(['love', 'hate'])],
+        ]);
 
-            $visitorId = Auth::id();
+        $visitorId    = Auth::id();
+        $reactionType = $request->reaction;
+        $ownerId      = $request->owner_id;
+        $track        = Track::findOrFail($request->track_id);
+        $reactingUser = Auth::user();
 
-            $existing = Reaction::where([
-                'owner_id' => $request->owner_id,
-                'user_id' => $visitorId,
-                'track_id' => $request->track_id,
-            ])->first();
+        $existing = Reaction::where([
+            'owner_id' => $ownerId,
+            'user_id'  => $visitorId,
+            'track_id' => $track->id,
+        ])->first();
 
-            if ($existing) {
-                if ($existing->reaction === $request->reaction) {
-                    $existing->delete(); // remove if clicked again
-                    return response()->json(['status' => 'removed', 'reaction' => $request->reaction]);
-                } else {
-                    $existing->reaction = $request->reaction; // switch reaction
-                    $existing->save();
-                    return response()->json(['status' => 'switched', 'reaction' => $request->reaction]);
+        if ($existing) {
+            if ($existing->reaction === $reactionType) {
+                $existing->delete();
+                return response()->json(['status' => 'removed', 'reaction' => $reactionType]);
+            } else {
+                $existing->reaction = $reactionType;
+                $existing->save();
+
+                if ($ownerId !== $visitorId) {
+                    $track->user->notify(
+                        new ReactionNotification($reactingUser, $reactionType, $track)
+                    );
                 }
+
+                return response()->json(['status' => 'switched', 'reaction' => $reactionType]);
             }
-
-            // No reaction yet — create new
-            Reaction::create([
-                'owner_id' => $request->owner_id,
-                'user_id' => $visitorId,
-                'track_id' => $request->track_id,
-                'reaction' => $request->reaction,
-            ]);
-
-            return response()->json(['status' => 'reacted', 'reaction' => $request->reaction]);
-        } catch (\Throwable $e) {
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
+
+        $reaction = Reaction::create([
+            'owner_id' => $ownerId,
+            'user_id'  => $visitorId,
+            'track_id' => $track->id,
+            'reaction' => $reactionType,
+        ]);
+
+        if ($ownerId !== $visitorId) {
+            $track->user->notify(
+                new ReactionNotification($reactingUser, $reactionType, $track)
+            );
+        }
+
+        return response()->json(['status' => 'reacted', 'reaction' => $reactionType]);
+    }
+
+    public function favorites()
+    {
+        $user = Auth::user();
+
+        $tracks = $user->favoriteTracks()
+            ->with(['user', 'tags', 'types'])
+            ->get();
+
+        foreach ($tracks as $track) {
+            $track->userReactedWith = 'love'; // mark all as loved
+        }
+
+        return view('tracks.favorites', compact('tracks'));
     }
 }

@@ -46,4 +46,17 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function likedReactions()
+    {
+        return $this->hasMany(\App\Models\Reaction::class, 'user_id')
+            ->where('reaction', 'love');
+    }
+
+
+    public function favoriteTracks()
+    {
+        return $this->belongsToMany(\App\Models\Track::class, 'reactions', 'user_id', 'track_id')
+            ->wherePivot('reaction', 'love');
+    }
 }

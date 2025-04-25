@@ -3,6 +3,10 @@ document.querySelectorAll('.reaction-button').forEach(button => {
         const trackId = button.dataset.trackId;
         const ownerId = button.dataset.ownerId;
         const reaction = button.dataset.reaction;
+        const opposite = reaction === 'love' ? 'hate' : 'love';
+
+        const loveCountSpan = document.querySelector(`#count-love-${trackId}`);
+        const hateCountSpan = document.querySelector(`#count-hate-${trackId}`);
 
         try {
             const response = await fetch(window.routes.react, {
@@ -16,18 +20,32 @@ document.querySelectorAll('.reaction-button').forEach(button => {
 
             const data = await response.json();
 
-            // Reset both buttons for this track
-            const allButtons = document.querySelectorAll(
-                `.reaction-button[data-track-id="${trackId}"]`
-            );
+            const allButtons = document.querySelectorAll(`.reaction-button[data-track-id="${trackId}"]`);
             allButtons.forEach(btn => btn.classList.remove('text-red-500'));
 
-            // If it's still active, apply class
-            if (data.status === 'reacted' || data.status === 'switched') {
+            if (data.status === 'reacted') {
                 button.classList.add('text-red-500');
+                if (reaction === 'love') loveCountSpan.textContent++;
+                else hateCountSpan.textContent++;
             }
-        } catch (error) {
-            console.error('Reaction error:', error);
+
+            if (data.status === 'switched') {
+                button.classList.add('text-red-500');
+                if (reaction === 'love') {
+                    loveCountSpan.textContent++;
+                    hateCountSpan.textContent--;
+                } else {
+                    hateCountSpan.textContent++;
+                    loveCountSpan.textContent--;
+                }
+            }
+
+            if (data.status === 'removed') {
+                if (reaction === 'love') loveCountSpan.textContent--;
+                else hateCountSpan.textContent--;
+            }
+        } catch (err) {
+            console.error('Error reacting:', err);
         }
     });
 });

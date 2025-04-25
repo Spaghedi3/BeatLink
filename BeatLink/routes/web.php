@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TrackController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,6 +18,7 @@ Route::get('/', function () {
 
 // Tracks index
 Route::get('/tracks', [TrackController::class, 'index'])->middleware('auth')->name('tracks.index');
+Route::get('/favorites', [TrackController::class, 'favorites'])->name('tracks.favorites');
 
 // Create route FIRST
 Route::middleware('auth')->group(function () {
@@ -33,7 +35,11 @@ Route::middleware('auth')->group(function () {
 
 Route::get('/tracks/{track}', [TrackController::class, 'show'])->name('tracks.show');
 
-
+Route::middleware('auth')->group(function () {
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read.all');
+    Route::get('/notifications/read/{notification}', [App\Http\Controllers\NotificationController::class, 'readAndRedirect'])
+        ->name('notifications.read.one');
+});
 
 ///TO DO
 Route::get('/links', function () {

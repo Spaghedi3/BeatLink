@@ -1,39 +1,78 @@
+<div class="sticky top-0 z-30 bg-[#0e1320] p-4 shadow-md rounded">
+    <form action="{{ url()->current() }}" method="GET">
+        <div class="flex items-center gap-2">
+            <!-- Search input -->
+            <input
+                type="text"
+                name="search"
+                placeholder="Search tracks by name, tag, category, or type..."
+                value="{{ request('search') }}"
+                class="border border-gray-300 rounded px-4 py-2 flex-1" />
+
+            <!-- BPM input -->
+            <input
+                type="text"
+                name="bpm_range"
+                value="{{ request('bpm_range') }}"
+                placeholder="BPM range"
+                class="border border-gray-300 rounded px-4 py-2 w-32 text-center" />
+
+            <!-- Key dropdown -->
+            <select name="key" class="border border-gray-300 rounded px-4 py-2 w-24 text-center">
+                <option value="">Key</option>
+                @foreach (['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as $keyOption)
+                <option value="{{ $keyOption }}" {{ request('key') == $keyOption ? 'selected' : '' }}>
+                    {{ $keyOption }}
+                </option>
+                @endforeach
+            </select>
+
+
+            <!-- Scale dropdown -->
+            <select name="scale" class="border border-gray-300 rounded px-4 py-2 w-24 text-center">
+                <option value="">Scale</option>
+                @foreach (['major', 'minor'] as $scaleOption)
+                <option value="{{ $scaleOption }}" {{ request('scale') == $scaleOption ? 'selected' : '' }}>
+                    {{ ucfirst($scaleOption) }}
+                </option>
+                @endforeach
+            </select>
+
+
+            <!-- Search button -->
+            <button
+                type="submit"
+                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Search
+            </button>
+        </div>
+
+
+        <!-- Move checkboxes outside the flex row -->
+        @if (! auth()->user()->is_artist)
+        <div class="flex flex-wrap items-center gap-4 mt-4">
+            <label class="text-gray-200 font-semibold mr-2">Category:</label>
+
+            @foreach(['instrumental', 'loopkit', 'drumkit', 'multikit'] as $cat)
+            <label for="cat_{{ $cat }}" class="inline-flex items-center space-x-2 cursor-pointer">
+                <input
+                    class="rounded text-blue-600 focus:ring-blue-500 border-gray-300"
+                    type="checkbox"
+                    name="category[]"
+                    id="cat_{{ $cat }}"
+                    value="{{ $cat }}"
+                    @if(collect(request()->input('category'))->contains($cat)) checked @endif
+                >
+                <span class="text-sm text-gray-300">{{ ucfirst($cat) }}</span>
+            </label>
+            @endforeach
+        </div>
+        @endif
+    </form>
+</div>
 <div class="w-full px-4">
     <!-- Always visible Search Bar -->
-    <div class="mb-4">
-        <form action="{{ url()->current() }}" method="GET">
-            <div class="flex">
-                <input type="text" name="search" placeholder="Search tracks by name, tag, category, or type..."
-                    value="{{ request('search') }}"
-                    class="border border-gray-300 rounded px-4 py-2 flex-1" />
 
-                <button type="submit" class="ml-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                    Search
-                </button>
-            </div>
-
-            <!-- Move checkboxes outside the flex row -->
-            @if (! auth()->user()->is_artist)
-            <div class="flex flex-wrap items-center gap-4 mt-4">
-                <label class="text-gray-200 font-semibold mr-2">Category:</label>
-
-                @foreach(['instrumental', 'loopkit', 'drumkit', 'multikit'] as $cat)
-                <label for="cat_{{ $cat }}" class="inline-flex items-center space-x-2 cursor-pointer">
-                    <input
-                        class="rounded text-blue-600 focus:ring-blue-500 border-gray-300"
-                        type="checkbox"
-                        name="category[]"
-                        id="cat_{{ $cat }}"
-                        value="{{ $cat }}"
-                        @if(collect(request()->input('category'))->contains($cat)) checked @endif
-                    >
-                    <span class="text-sm text-gray-300">{{ ucfirst($cat) }}</span>
-                </label>
-                @endforeach
-            </div>
-            @endif
-        </form>
-    </div>
 
     <!-- tracks Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -63,6 +102,11 @@
             </div>
             <!-- Image container -->
             <div class="relative group w-full h-48 border-2 border-purple-500 flex items-center justify-center overflow-hidden">
+                <div class="absolute top-0 left-0 bg-black opacity-0 group-hover:opacity-70 transition-opacity text-white text-xs p-2 rounded-br-lg z-20">
+                    <div>BPM: {{ $track->bpm }}</div>
+                    <div>Key: {{ $track->key }}</div>
+                    <div>Scale: {{ ucfirst($track->scale) }}</div>
+                </div>
                 @if($track->file_path && !in_array($track->category, ['loopkit', 'drumkit', 'multikit']))
                 <!-- Transparent play button over image -->
                 <button onclick="togglePlay({{ $track->id }})"

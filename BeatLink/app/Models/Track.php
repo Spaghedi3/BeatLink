@@ -16,7 +16,11 @@ class Track extends Model
         'is_private',
         'folder_files',
         'type',
+        'bpm',
+        'key',
+        'scale'
     ];
+
 
     public function user()
     {

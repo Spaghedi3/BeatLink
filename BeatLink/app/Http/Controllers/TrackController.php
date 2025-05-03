@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -39,6 +42,28 @@ class TrackController extends Controller
                     ->orWhereHas('tags', fn($tagQ) => $tagQ->where('name', 'like', '%' . $query . '%'))
                     ->orWhereHas('types', fn($typeQ) => $typeQ->where('name', 'like', '%' . $query . '%'));
             });
+        }
+
+        if ($request->filled('bpm_range')) {
+            $input = trim($request->input('bpm_range'));
+
+            if (str_contains($input, '-')) {
+                [$min, $max] = array_map('trim', explode('-', $input, 2));
+
+                if (is_numeric($min) && is_numeric($max) && (int)$min <= (int)$max) {
+                    $tracksQuery->whereBetween('bpm', [(int)$min, (int)$max]);
+                }
+            } elseif (is_numeric($input)) {
+                $tracksQuery->where('bpm', (int)$input);
+            }
+        }
+
+        if ($request->filled('key')) {
+            $tracksQuery->where('key', $request->input('key'));
+        }
+
+        if ($request->filled('scale')) {
+            $tracksQuery->where('scale', $request->input('scale'));
         }
 
         if ($categories && !Auth::user()->is_artist) {
@@ -97,6 +122,7 @@ class TrackController extends Controller
             ]);
         }
 
+
         $audioPath = null;
         $folderFilesJson = null;
         $username = Auth::user()->username;
@@ -130,6 +156,36 @@ class TrackController extends Controller
         ]);
         $this->attachTagsToTrack($track, $request->tags);
         $this->attachTypesToTrack($track, $request->types);
+
+        //key, scale and BPM
+        $audioFullPath = '/mnt/c/Users/edyed/Documents/LICENTA/BeatLink/BeatLink/BeatLink/storage/app/public/' . str_replace('\\', '/', $audioPath);
+        $batPath = base_path('run_essentia.bat');
+
+        // Build the command
+        $command = '"' . $batPath . '" "' . $audioFullPath . '"';
+
+        // Run and capture output
+        $output = shell_exec($command);
+        Log::info('Essentia output: ' . $output);
+
+        // Parse output
+        if ($output) {
+            $lines = explode("\n", trim($output));
+            if (count($lines) >= 2) {
+                $bpm = (int) filter_var($lines[0], FILTER_SANITIZE_NUMBER_INT);
+                [$key, $scale] = explode(' ', str_replace('Key: ', '', $lines[1]));
+
+                $track->update([
+                    'bpm'   => $bpm,
+                    'key'   => $key,
+                    'scale' => $scale,
+                ]);
+            } else {
+                Log::error("Unexpected Essentia output format: $output");
+            }
+        } else {
+            Log::error("Essentia returned no output.");
+        }
 
         return redirect()->route('tracks.index')->with('success', 'Track uploaded successfully.');
     }
@@ -340,8 +396,8 @@ class TrackController extends Controller
 
         $visitorId    = Auth::id();
         $reactionType = $request->reaction;
-        $ownerId      = $request->owner_id;
         $track        = Track::findOrFail($request->track_id);
+        $ownerId = $track->user_id;
         $reactingUser = Auth::user();
 
         $existing = Reaction::where([

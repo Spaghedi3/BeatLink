@@ -6,22 +6,9 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="pt-6 pb-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <!-- The content from your classic Blade snippet -->
-                    <div class="container mt-5">
-                        <h1>For You</h1>
-                        <p>Discover small producers based on your searches, filters, and overall popularity.</p>
-
-                        <!-- Example list of recommended producers -->
-                        <div class="row">
-                            <!-- Replace this loop with actual recommended producer data -->
-                        </div>
-                    </div>
-                </div>
-            </div>
+            @include('tracks._tracks-grid', ['tracks'=> $tracks, 'showAddButton' => false])
         </div>
     </div>
 </x-app-layout>

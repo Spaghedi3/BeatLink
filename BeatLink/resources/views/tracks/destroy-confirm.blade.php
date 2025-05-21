@@ -10,7 +10,7 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 text-gray-900 dark:text-gray-100">
                 <h3 class="text-lg font-semibold mb-4">Are you sure you want to delete this?</h3>
                 <p class="mb-4">
-                    <strong>Name:</strong> {{ $track->name }}<br>
+                    {{ $track->name }}<br>
                     @if($track->picture)
                     <img src="{{ Storage::url($track->picture) }}" alt="Track Picture" class="w-32 h-32 object-cover mt-2">
                     @endif

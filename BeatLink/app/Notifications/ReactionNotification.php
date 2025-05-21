@@ -17,7 +17,7 @@ class ReactionNotification extends Notification
     public function __construct($actor, string $reaction, $track)
     {
         $this->actor    = $actor;       // e.g. User instance who clicked
-        $this->reaction = strtoupper($reaction); // “LOVE” or “HATE”
+        $this->reaction = strtoupper($reaction) . 'S'; // “LOVES” or “HATES”
         $this->track    = $track;       // Track instance
     }
 

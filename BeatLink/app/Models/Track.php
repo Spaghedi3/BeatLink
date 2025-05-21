@@ -51,4 +51,9 @@ class Track extends Model
     {
         return $this->reactions()->where('reaction', 'hate')->count();
     }
+
+    public function stats()
+    {
+        return $this->hasOne(TrackStat::class);
+    }
 }

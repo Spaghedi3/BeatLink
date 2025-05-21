@@ -22,6 +22,9 @@ class User extends Authenticatable
         'email',
         'password',
         'is_artist',
+        'phone',
+        'profile_picture',
+        'social_links',
     ];
 
     /**
@@ -44,6 +47,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'social_links' => 'array',
         ];
     }
 
@@ -58,5 +62,10 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(\App\Models\Track::class, 'reactions', 'user_id', 'track_id')
             ->wherePivot('reaction', 'love');
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'username';
     }
 }

@@ -1,6 +1,7 @@
 <div class="sticky top-0 z-30 bg-[#0e1320] p-4 shadow-md rounded">
     <form action="{{ url()->current() }}" method="GET">
         <div class="flex items-center gap-2">
+            <!-- Always visible Search Bar -->
             <!-- Search input -->
             <input
                 type="text"
@@ -71,9 +72,6 @@
     </form>
 </div>
 <div class="w-full px-4">
-    <!-- Always visible Search Bar -->
-
-
     <!-- tracks Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         @foreach($tracks as $track)
@@ -81,7 +79,7 @@
         <div class="bg-gray-900 text-white p-4 rounded shadow-md group-relative">
             <div class="relative inline-block text-left float-right h-8 w-8">
                 @if(auth()->id() === $track->user_id)
-                <div x-data="{ open: false }">
+                <div x-data="{ open: false }" class="realtive">
                     <button @click="open = !open"
                         class="w-8 h-8 flex items-center justify-center hover:text-gray-300">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
@@ -90,7 +88,7 @@
                                 d="M12 6v.01M12 12v.01M12 18v.01" />
                         </svg>
                     </button>
-                    <div x-show="open" @click.away="open = false"
+                    <div x-show="open" x-cloak @click.away="open = false"
                         class="absolute z-20 right-0 mt-2 w-32 bg-white text-gray-800 rounded shadow-md py-1">
                         <a href="{{ route('tracks.edit', $track) }}"
                             class="block px-4 py-2 text-sm hover:bg-gray-100">Edit</a>
@@ -102,11 +100,13 @@
             </div>
             <!-- Image container -->
             <div class="relative group w-full h-48 border-2 border-purple-500 flex items-center justify-center overflow-hidden">
+                @if(!$track->folder_files)
                 <div class="absolute top-0 left-0 bg-black opacity-0 group-hover:opacity-70 transition-opacity text-white text-xs p-2 rounded-br-lg z-20">
                     <div>BPM: {{ $track->bpm }}</div>
                     <div>Key: {{ $track->key }}</div>
                     <div>Scale: {{ ucfirst($track->scale) }}</div>
                 </div>
+                @endif
                 @if($track->file_path && !in_array($track->category, ['loopkit', 'drumkit', 'multikit']))
                 <!-- Transparent play button over image -->
                 <button onclick="togglePlay({{ $track->id }})"
@@ -151,13 +151,22 @@
                 @endif
 
             </div>
-            <audio id="hover-audio-player" class="hidden"></audio>
+            <audio
+                id="hover-audio-player"
+                data-track-id="{{ $track->id }}"
+                class="hidden">
+            </audio>
+
 
             <!-- track name -->
             <p class="mt-2 text-center font-semibold">
-                Name: {{ $track->name }}
+                {{ $track->name }}
             </p>
-
+            <a href="{{ route('profile.show', $track->user) }}">
+                <p class=" mt-2 text-center font-semibold">
+                    By: {{ $track->user->username }}
+                </p>
+            </a>
             <!-- Audio element (no controls) -->
             @if($track->category !== 'loopkit' && $track->category !== 'drumkit' && $track->category !== 'multikit' && $track->file_path)
             <audio id="audio-{{ $track->id }}">

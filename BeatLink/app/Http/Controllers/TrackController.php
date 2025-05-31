@@ -2,580 +2,95 @@
 
 namespace App\Http\Controllers;
 
-use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
-
+use App\Http\Requests\StoreTrackRequest;
+use App\Http\Requests\UpdateTrackRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-
 use Illuminate\Validation\Rule;
-use App\Models\User;
 use App\Models\Track;
-use App\Models\TrackStat;
-use App\Models\UserInteraction;
-use App\Models\Reaction;
-use App\Notifications\ReactionNotification;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+
 
 class TrackController extends Controller
 {
-    public function index(Request $request)
+
+    function store(StoreTrackRequest $r)
     {
-        if (!Auth::check()) {
-            return redirect('/login');
-        }
+        Track::createFromRequest($r);
+        return redirect()->route('tracks.index')->with('success', 'Track uploaded.');
+    }
 
-        $query = $request->input('search');
-        $categories = $request->input('category');
+    function update(UpdateTrackRequest $r, Track $track)
+    {
+        $track->updateFromRequest($r);
+        return redirect()
+            ->route('tracks.index')
+            ->with('success', 'Track updated successfully.');
+    }
 
-        $tracksQuery = Track::query();
+    function destroy(Track $track)
+    {
+        $track->deleteWithFiles();
+        return redirect()->route('tracks.index')->with('success', 'Deleted.');
+    }
 
-        // only show their own tracks
-        if (Auth::user()) {
-            $tracksQuery->where('user_id', Auth::id());
-        }
-
-        if ($query) {
-            $tracksQuery->where(function ($q) use ($query) {
-                $q->where('name', 'like', '%' . $query . '%')
-                    ->orWhere('category', 'like', '%' . $query . '%')
-                    ->orWhereHas('tags', fn($tagQ) => $tagQ->where('name', 'like', '%' . $query . '%'))
-                    ->orWhereHas('types', fn($typeQ) => $typeQ->where('name', 'like', '%' . $query . '%'));
-            });
-        }
-
-        if ($request->filled('bpm_range')) {
-            $input = trim($request->input('bpm_range'));
-
-            if (str_contains($input, '-')) {
-                [$min, $max] = array_map('trim', explode('-', $input, 2));
-
-                if (is_numeric($min) && is_numeric($max) && (int)$min <= (int)$max) {
-                    $tracksQuery->whereBetween('bpm', [(int)$min, (int)$max]);
-                }
-            } elseif (is_numeric($input)) {
-                $tracksQuery->where('bpm', (int)$input);
-            }
-        }
-
-        if ($request->filled('key')) {
-            $tracksQuery->where('key', $request->input('key'));
-        }
-
-        if ($request->filled('scale')) {
-            $tracksQuery->where('scale', $request->input('scale'));
-        }
-
-        if ($categories && !Auth::user()->is_artist) {
-            $tracksQuery->whereIn('category', $categories);
-        }
-
-        $tracksQuery->with(['tags', 'types', 'user', 'reactions']);
-        $tracks = $tracksQuery->get();
-
-        foreach ($tracks as $track) {
-            $track->userReactedWith = $track->reactions
-                ->firstWhere('user_id', Auth::id())
-                ->reaction ?? null;
-        }
-
+    function index(Request $r)
+    {
+        $tracks = Track::ownedBy(Auth::id())
+            ->search($r->search)
+            ->filterBpm($r->bpm_range)
+            ->filterKey($r->key)
+            ->filterScale($r->scale)
+            ->filterCategory($r->category)
+            ->with(['tags', 'types', 'user', 'reactions'])
+            ->get()
+            ->each(fn($t) => $t->userReactedWith = optional(
+                $t->reactions->firstWhere('user_id', Auth::id())
+            )->reaction);
 
         return view('tracks.index', compact('tracks'));
     }
 
-
     public function create()
     {
-        return view('tracks.create'); // you can rename view later
+        return view('tracks.create');
     }
-
-    public function store(Request $request)
-    {
-        $user = $request->user();
-        $username = $user->username;
-
-        // If artist, remove category & folder entirely
-        if ($user->is_artist) {
-            $request->request->remove('category');
-            $request->request->remove('audio_folder');
-        }
-
-        // Validation
-        if ($user->is_artist) {
-            $request->validate([
-                'name'       => 'required|string|max:255|unique:tracks,name,NULL,id,user_id,' . $user->id,
-                'audio_file' => 'required|file|mimetypes:audio/mpeg,audio/wav',
-                'picture'    => 'nullable|image',
-                'is_private' => 'sometimes|boolean',
-            ]);
-        } else {
-            $request->validate([
-                'name'          => [
-                    'required',
-                    'string',
-                    'max:255',
-                    Rule::unique('tracks')->where(fn($q) => $q->where('user_id', $user->id)),
-                ],
-                'audio_file'    => 'required_if:category,instrumental|file|mimetypes:audio/mpeg,audio/wav',
-                'audio_folder'  => 'required_unless:category,instrumental|array',
-                'audio_folder.*' => 'file|mimetypes:audio/mpeg,audio/wav',
-                'picture'       => 'nullable|image',
-                'category'      => 'nullable|string',
-                'is_private'    => 'sometimes|boolean',
-            ], [
-                'name.unique' => 'You already have an entry with this name.',
-            ]);
-        }
-
-        // Handle upload(s)
-        $folderFilesJson = null;
-        $audioPath       = null;
-
-        // single file?
-        if ($request->hasFile('audio_file')) {
-            $audioPath = $request->file('audio_file')
-                ->store("tracks/{$username}", 'public');
-        }
-        // folder?
-        elseif ($request->hasFile('audio_folder')) {
-            $sanitizedName = Str::slug($request->name);
-            $paths = [];
-            foreach ($request->file('audio_folder') as $f) {
-                $paths[] = $f->storeAs(
-                    "kits/{$username}/{$sanitizedName}",
-                    $f->getClientOriginalName(),
-                    'public'
-                );
-            }
-            $folderFilesJson = json_encode($paths);
-            // we use a placeholder so the Track model can still store something
-            $audioPath = "kits/{$username}/{$sanitizedName}";
-        }
-
-        // picture
-        $picturePath = $request->hasFile('picture')
-            ? $request->file('picture')->store('track_pictures', 'public')
-            : null;
-
-        // create record
-        $track = Track::create([
-            'user_id'      => $user->id,
-            'name'         => $request->name,
-            'file_path'    => $audioPath,
-            'picture'      => $picturePath,
-            'category'     => $request->category,
-            'is_private'   => $request->boolean('is_private'),
-            'folder_files' => $folderFilesJson,
-            'type'         => $user->is_artist ? 'song' : 'beat',
-        ]);
-
-        // tags & types
-        $this->attachTagsToTrack($track, $request->tags);
-        $this->attachTypesToTrack($track, $request->types);
-
-        //
-        // ONLY run Essentia when we uploaded a single audio_file
-        //
-        if ($request->hasFile('audio_file')) {
-            $audioFullPath = storage_path("app/public/{$audioPath}");
-            $batPath       = base_path('run_essentia.bat');
-            $command       = "\"{$batPath}\" \"{$audioFullPath}\"";
-            $output        = shell_exec($command);
-            // \Log::info("Essentia output for track {$track->id}: {$output}");
-
-            if ($output) {
-                $lines = array_filter(explode("\n", trim($output)));
-                if (count($lines) >= 2) {
-                    $bpm   = (int) filter_var($lines[0], FILTER_SANITIZE_NUMBER_INT);
-                    [$key, $scale] = explode(' ', str_replace('Key: ', '', $lines[1]));
-                    $track->update(compact('bpm', 'key', 'scale'));
-                } else {
-                    // \Log::error("Unexpected Essentia output for track {$track->id}: {$output}");
-                }
-            } else {
-                // \Log::error("No Essentia output for track {$track->id}.");
-            }
-        }
-
-        return redirect()
-            ->route('tracks.index')
-            ->with('success', 'Track uploaded successfully.');
-    }
-
 
     public function edit(Track $track)
     {
         $this->authorize('update', $track);
-        return view('tracks.edit', compact('track')); // update view name later
+        return view('tracks.edit', compact('track'));
     }
 
-    public function update(Request $request, Track $track)
+    public function userTracks(Request $request, string $username)
     {
-        if (Auth::user()->is_artist) {
-            $request->request->remove('category');
-            $request->request->remove('audio_folder');
-        }
+        $tracks = Track::listForUser($request, $username);
 
-        $this->authorize('update', $track);
-        $folderFilesJson = $track->folder_files;
-        if (Auth::check()) {
-            if (Auth::user()->is_artist) {
-                $request->validate([
-                    'name' => [
-                        'required',
-                        'string',
-                        'max:255',
-                        Rule::unique('tracks')->where(fn($q) => $q->where('user_id', Auth::id()))->ignore($track->id),
-                    ],
-                    'audio_file' => 'nullable|file|mimetypes:audio/mpeg,audio/wav',
-                    'picture' => 'nullable|image',
-                    'is_private' => 'sometimes|boolean',
-                ]);
-            } else {
-                $request->validate([
-                    'name' => [
-                        'required',
-                        'string',
-                        'max:255',
-                        Rule::unique('tracks')->where(fn($q) => $q->where('user_id', Auth::id()))->ignore($track->id),
-                    ],
-                    'audio_file' => 'nullable|file|mimetypes:audio/mpeg,audio/wav',
-                    'picture'    => 'nullable|image',
-                    'category'   => 'nullable|string',
-                    'is_private' => 'sometimes|boolean',
-                ], [
-                    'name.unique' => 'You already have an entry with this name.',
-                ]);
-            }
-        } else {
-            return redirect('/login');
-        }
+        $owner = User::where('username', $username)->firstOrFail();
 
-
-        $username = Auth::user()->username;
-
-        if ($request->hasFile('audio_file')) {
-            $audioPath = $request->file('audio_file')->store("tracks/{$username}", 'public');
-        } else {
-            $audioPath = $track->file_path;
-        }
-
-        if ($request->hasFile('audio_folder')) {
-            $folderFiles = [];
-            $sanitizedName = Str::slug($request->name);
-            foreach ($request->file('audio_folder') as $file) {
-                $path = str_replace('\\', '/', $file->storeAs("kits/{$username}/{$sanitizedName}", $file->getClientOriginalName(), 'public'));
-                $folderFiles[] = $path;
-            }
-            $folderFilesJson = json_encode($folderFiles);
-        }
-
-        $picturePath = $request->hasFile('picture')
-            ? $request->file('picture')->store('track_pictures', 'public')
-            : $track->picture;
-
-        $track->update([
-            'name'       => $request->name,
-            'file_path'  => $audioPath,
-            'picture'    => $picturePath,
-            'category'   => $request->category,
-            'is_private' => $request->boolean('is_private'),
-            'folder_files'  => $folderFilesJson,
-            'type' => Auth::user()->is_artist ? 'song' : 'beat',
-        ]);
-
-        $this->attachTagsToTrack($track, $request->tags);
-        $this->attachTypesToTrack($track, $request->types);
-
-        return redirect()->route('tracks.index')->with('success', 'Updated successfully.');
-    }
-
-    public function destroyConfirm(Track $track)
-    {
-        $this->authorize('delete', $track);
-        return view('tracks.destroy-confirm', compact('track')); // update view name later
-    }
-
-    public function destroy(Track $track)
-    {
-        $this->authorize('delete', $track);
-
-        if ($track->file_path) {
-            Storage::delete('public/' . $track->file_path);
-        }
-
-        if ($track->picture) {
-            Storage::delete('public/' . $track->picture);
-        }
-
-        if ($track->folder_files) {
-            $files = json_decode($track->folder_files, true);
-            foreach ($files as $file) {
-                Storage::delete('public/' . $file);
-            }
-        }
-
-        $track->delete();
-
-        return redirect()->route('tracks.index')->with('success', 'Track deleted successfully.');
-    }
-
-    public function userTracks(Request $request, $username)
-    {
-        $user = User::where('username', $username)->firstOrFail();
-
-        $search = $request->input('search');
-        $categories = $request->input('category');
-
-        $tracksQuery = Track::where('user_id', $user->id);
-
-        if (!(Auth::check() && Auth::id() === $user->id)) {
-            $tracksQuery->where('is_private', false);
-        }
-
-        if ($search) {
-            $tracksQuery->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('category', 'like', '%' . $search . '%')
-                    ->orWhereHas('types', fn($typeQ) => $typeQ->where('name', 'like', '%' . $search . '%'))
-                    ->orWhereHas('tags', fn($tagQ) => $tagQ->where('name', 'like', '%' . $search . '%'));
-            });
-        }
-
-        if ($categories) {
-            $tracksQuery->whereIn('category', $categories);
-        }
-
-        $tracksQuery->with(['tags', 'types', 'user']);
-        $tracks = $tracksQuery->get();
-
-        foreach ($tracks as $track) {
-            $track->userReactedWith = Reaction::where('track_id', $track->id)
-                ->where('user_id', Auth::id())
-                ->value('reaction');
-        }
         return view('tracks.user-index', [
-            'tracks'     => $tracks,
-            'ownerName'  => $user->username,
-            'owner'      => $user,            // track owner (the profile being viewed)
-            'viewer'     => Auth::user(),     // currently logged in user
+            'tracks'    => $tracks,
+            'ownerName' => $username,
+            'owner'     => $owner,
+            'viewer'    => Auth::user(),
         ]);
     }
 
-    public function checkName(Request $request)
+    function react(Request $r)
     {
-        $exists = Track::where('user_id', Auth::id())
-            ->where('name', $request->query('name'))
-            ->when($request->has('except_id'), fn($q) => $q->where('id', '!=', $request->query('except_id')))
-            ->exists();
-
-        return response()->json(['exists' => $exists]);
-    }
-
-    private function attachTagsToTrack(Track $track, ?string $rawTags): void
-    {
-        if (!$rawTags) return;
-
-        $tags = collect(explode(',', $rawTags))
-            ->map(fn($tag) => trim(strtolower($tag)))
-            ->filter()
-            ->unique();
-
-        $tagIds = $tags->map(fn($tagName) => \App\Models\Tag::firstOrCreate(['name' => $tagName])->id);
-
-        $track->tags()->sync($tagIds);
-    }
-
-    private function attachTypesToTrack(Track $track, ?string $rawTypes): void
-    {
-        if (!$rawTypes) return;
-
-        $types = collect(explode(',', $rawTypes))
-            ->map(fn($type) => trim(strtolower($type)))
-            ->filter()
-            ->unique();
-
-        $typeIds = $types->map(fn($typeName) => \App\Models\Type::firstOrCreate(['name' => $typeName])->id);
-
-        $track->types()->sync($typeIds);
-    }
-
-    public function react(Request $request)
-    {
-        $request->validate([
+        $r->validate([
             'owner_id' => 'required|exists:users,id',
             'track_id' => 'required|exists:tracks,id',
             'reaction' => ['required', Rule::in(['love', 'hate'])],
         ]);
-
-        $visitorId    = Auth::id();
-        $reactionType = $request->reaction;      // “love” or “hate”
-        $track        = Track::findOrFail($request->track_id);
-        $ownerId      = $track->user_id;
-        $reactingUser = Auth::user();
-
-        // find existing reaction (if any)
-        $existing = Reaction::where([
-            'owner_id' => $ownerId,
-            'user_id'  => $visitorId,
-            'track_id' => $track->id,
-        ])->first();
-
-        // fetch-or-create your stats row once
-        $stat = TrackStat::firstOrCreate(
-            ['track_id' => $track->id],
-            ['total_listen_seconds' => 0, 'love_count' => 0, 'hate_count' => 0]
+        return response()->json(
+            Track::findOrFail($r->track_id)->react($r->reaction)
         );
-
-        // helper to safely decrement an unsigned counter
-        $guardedDecrement = function (TrackStat $stat, string $col) {
-            if ($stat->{$col} > 0) {
-                $stat->decrement($col);
-            }
-        };
-
-        // make sure there’s also a UserInteraction row
-        $ui = \App\Models\UserInteraction::firstOrCreate(
-            ['user_id' => $visitorId, 'beat_id' => $track->id],
-            ['liked' => 0, 'listen_duration' => 0]
-        );
-
-        //
-        // 1) user clicks same reaction again → remove
-        //
-        if ($existing && $existing->reaction === $reactionType) {
-            $existing->delete();
-
-            // undo one count of this reaction
-            $guardedDecrement($stat, $reactionType . '_count');
-
-            // flip the UI “liked” flag back to null/0
-            $ui->update(['liked' => 0]);
-
-            return response()->json([
-                'status'     => 'removed',
-                'reaction'   => $reactionType,
-                'love_count' => $track->reactions()->where('reaction', 'love')->count(),
-                'hate_count' => $track->reactions()->where('reaction', 'hate')->count(),
-            ]);
-        }
-
-        //
-        // 2) user switches from love→hate or hate→love
-        //
-        if ($existing && $existing->reaction !== $reactionType) {
-            $opposite = $existing->reaction; // old one to decrement
-            $existing->reaction = $reactionType;
-            $existing->save();
-
-            // notify track owner
-            if ($ownerId !== $visitorId) {
-                $track->user->notify(
-                    new ReactionNotification($reactingUser, $reactionType, $track)
-                );
-            }
-
-            // decrement old, increment new
-            $guardedDecrement($stat, $opposite . '_count');
-            $stat->increment($reactionType . '_count');
-
-            // update the UI table
-            $ui->update(['liked' => $reactionType === 'love' ? 1 : 0]);
-
-            return response()->json([
-                'status'     => 'switched',
-                'reaction'   => $reactionType,
-                'love_count' => $track->reactions()->where('reaction', 'love')->count(),
-                'hate_count' => $track->reactions()->where('reaction', 'hate')->count(),
-            ]);
-        }
-
-        //
-        // 3) brand-new reaction
-        //
-        $reaction = Reaction::create([
-            'owner_id' => $ownerId,
-            'user_id'  => $visitorId,
-            'track_id' => $track->id,
-            'reaction' => $reactionType,
-        ]);
-
-        if ($ownerId !== $visitorId) {
-            $track->user->notify(
-                new ReactionNotification($reactingUser, $reactionType, $track)
-            );
-        }
-
-        // increment the one new reaction
-        $stat->increment($reactionType . '_count');
-
-        // flag the UI table
-        $ui->update(['liked' => $reactionType === 'love' ? 1 : 0]);
-
-        return response()->json([
-            'status'     => 'reacted',
-            'reaction'   => $reactionType,
-            'love_count' => $track->reactions()->where('reaction', 'love')->count(),
-            'hate_count' => $track->reactions()->where('reaction', 'hate')->count(),
-        ]);
     }
-
 
     public function favorites(Request $request)
     {
-        $user = Auth::user();
-
-        $tracks = $user->favoriteTracks()
-            ->with(['user', 'tags', 'types'])
-            ->get();
-        $query = $request->input('search');
-        $categories = $request->input('category');
-
-        $tracksQuery = Track::query();
-
-        if ($query) {
-            $tracksQuery->where(function ($q) use ($query) {
-                $q->where('name', 'like', '%' . $query . '%')
-                    ->orWhere('category', 'like', '%' . $query . '%')
-                    ->orWhereHas('tags', fn($tagQ) => $tagQ->where('name', 'like', '%' . $query . '%'))
-                    ->orWhereHas('types', fn($typeQ) => $typeQ->where('name', 'like', '%' . $query . '%'));
-            });
-        }
-
-        if ($request->filled('bpm_range')) {
-            $input = trim($request->input('bpm_range'));
-
-            if (str_contains($input, '-')) {
-                [$min, $max] = array_map('trim', explode('-', $input, 2));
-
-                if (is_numeric($min) && is_numeric($max) && (int)$min <= (int)$max) {
-                    $tracksQuery->whereBetween('bpm', [(int)$min, (int)$max]);
-                }
-            } elseif (is_numeric($input)) {
-                $tracksQuery->where('bpm', (int)$input);
-            }
-        }
-
-        if ($request->filled('key')) {
-            $tracksQuery->where('key', $request->input('key'));
-        }
-
-        if ($request->filled('scale')) {
-            $tracksQuery->where('scale', $request->input('scale'));
-        }
-
-        if ($categories && !Auth::user()->is_artist) {
-            $tracksQuery->whereIn('category', $categories);
-        }
-
-        $tracksQuery->with(['tags', 'types', 'user', 'reactions']);
-        $tracks = $tracksQuery->get();
-
-        foreach ($tracks as $track) {
-            $track->userReactedWith = 'love';
-        }
+        $tracks = Track::favoritesForUser($request);
 
         return view('tracks.favorites', compact('tracks'));
     }

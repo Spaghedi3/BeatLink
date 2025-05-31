@@ -46,9 +46,12 @@
                 <div class="mt-6 flex items-center justify-center">
                     <a href="{{ route('user.tracks', ['username' => $user->username]) }}"
                         class="w-full dark:bg-gray-800 hover:bg-[#1b2d44] text-white font-semibold py-3 px-6 rounded-full shadow-md transition text-lg text-center flex justify-center items-center gap-2">
-                        Check out my <span class="bg-black text-white px-3 py-1 rounded-full text-sm">tracks</span>
+                        Check out my tracks
                     </a>
                 </div>
+
+                <a href="{{ route('user', ['id' => $user->id]) }}">Message me</a>
+
             </div>
         </div>
 
@@ -56,9 +59,9 @@
         {{-- Edit Profile Link --}}
         @if(auth()->id() === $user->id)
         <br>
-        <div class="dark:bg-gray-800 rounded-xl p-1 shadow-md">
+        <div class="">
             <div class="text-center">
-                <a href="{{ route('profile.edit') }}" class="text-sm">
+                <a href="{{ route('profile.edit') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
                     Edit Profile
                 </a>
             </div>

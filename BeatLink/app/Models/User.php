@@ -2,21 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\ChMessage as ModelsChMessage;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'username',
         'email',
@@ -27,29 +25,15 @@ class User extends Authenticatable
         'social_links',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'social_links' => 'array',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'social_links'      => 'array',
+    ];
 
     public function likedReactions()
     {
@@ -57,15 +41,66 @@ class User extends Authenticatable
             ->where('reaction', 'love');
     }
 
-
-    public function favoriteTracks()
+    public function favoriteTracks(): BelongsToMany
     {
-        return $this->belongsToMany(\App\Models\Track::class, 'reactions', 'user_id', 'track_id')
+        return $this->belongsToMany(
+            Track::class,
+            'reactions',
+            'user_id',
+            'track_id'
+        )
+            ->withPivot('reaction')
             ->wherePivot('reaction', 'love');
     }
 
-    public function getRouteKeyName()
+    public function updateFromProfile(array $data, ?UploadedFile $picture = null): self
+    {
+        if ($picture) {
+            $this->profile_picture = $picture->store('profile_pictures', 'public');
+        }
+        $this->social_links = [
+            'beatstars' => $data['beatstars'] ?? null,
+            'facebook'  => $data['facebook']  ?? null,
+            'twitter'   => $data['twitter']   ?? null,
+            'instagram' => $data['instagram'] ?? null,
+            'tiktok'    => $data['tiktok']    ?? null,
+        ];
+        $this->fill([
+            'username' => $data['username'],
+            'email'    => $data['email'],
+            'phone'    => $data['phone'] ?? null,
+        ]);
+        if ($this->isDirty('email')) {
+            $this->email_verified_at = null;
+        }
+        $this->save();
+        return $this;
+    }
+
+    public function deleteAccount(): void
+    {
+        if ($this->profile_picture) {
+            Storage::disk('public')->delete($this->profile_picture);
+        }
+        $this->delete();
+    }
+
+
+    /** Use username for route binding */
+    public function getRouteKeyName(): string
     {
         return 'username';
+    }
+
+    public function getUnreadMessageCount()
+    {
+        $userId = Auth::user()->id;
+
+        // Chatify’s default “Message” model has a `to_id` column and a `seen` column.
+        $unreadCount = ModelsChMessage::where('to_id', $userId)
+            ->where('seen', 0)
+            ->count();
+
+        return $unreadCount;
     }
 }

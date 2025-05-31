@@ -29,7 +29,7 @@ class UserInteractionController extends Controller
             'beat_id'  => $beatId,
         ]);
 
-        \Log::debug("Before save UI: old reaction={$ui->reaction}, existing listen_duration={$ui->listen_duration}");
+        // \Log::debug("Before save UI: old reaction={$ui->reaction}, existing listen_duration={$ui->listen_duration}");
 
         // 3) Update listen_duration
         if ($listenSeconds > 0) {
@@ -41,7 +41,7 @@ class UserInteractionController extends Controller
             $ui->reaction = $newReaction;
         }
 
-        \Log::debug("Saving UI: new reaction={$ui->reaction}, new listen_duration={$ui->listen_duration}");
+        // \Log::debug("Saving UI: new reaction={$ui->reaction}, new listen_duration={$ui->listen_duration}");
 
         $ui->save();
 
@@ -51,19 +51,19 @@ class UserInteractionController extends Controller
             ['total_listen_seconds' => 0, 'love_count' => 0, 'hate_count' => 0]
         );
 
-        \Log::debug("After firstOrCreate Stat: love={$stat->love_count}, hate={$stat->hate_count}, time={$stat->total_listen_seconds}");
+        // \Log::debug("After firstOrCreate Stat: love={$stat->love_count}, hate={$stat->hate_count}, time={$stat->total_listen_seconds}");
 
         // 6) Apply listen_time to track_stats
         if ($listenSeconds > 0) {
             $stat->increment('total_listen_seconds', $listenSeconds);
-            \Log::debug("After increment time: total_listen_seconds={$stat->total_listen_seconds}");
+            // \Log::debug("After increment time: total_listen_seconds={$stat->total_listen_seconds}");
         }
 
         // 7) Apply reaction delta logic
         if (array_key_exists('reaction', $data)) {
-            \Log::debug("Reaction change: old={$oldReaction}, new={$newReaction}");
+            // \Log::debug("Reaction change: old={$oldReaction}, new={$newReaction}");
             // … your reaction‐count code …
-            \Log::debug("After reaction adjustment: love={$stat->love_count}, hate={$stat->hate_count}");
+            // \Log::debug("After reaction adjustment: love={$stat->love_count}, hate={$stat->hate_count}");
         }
 
         return response()->json([

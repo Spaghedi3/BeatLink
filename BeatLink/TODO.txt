@@ -1,17 +1,58 @@
+STUFF TO KEEP IN MIND
 ===================================
---!!!! transforma aplicatia astfel incat pagina de beats sa fie pagina de "Tracks" ca sa poti integra si artistii in aplicatie, astfel sa isi posteze si ei 
-munca si sa primeasca recomandari de produceri, iar producerii sa primeasca recomandari de artisti.!!!! ai putea incerca cu o simpla coloana in baza de 
-date (isArtist sau isProducer) si asa se filtreaza usor dupa. 
--- probabil va trebui alta pagina pentru artisti care sa se numeasca Tracks sau ceva SAAU
-sa schimb inmeniul de add... dar cred ca e mai ordonat sa fac complet alta pagina
+-- dupa ce reactioneaza la o postare sa ii dispara de pe foryou daca da refresh
+===================================
+ASTAZI:
+===================================
 
+-- repara sistemul de recomandari (se recomanda ciudat dupa scoruri, vezi in laravel.log)
 
--- adauga buton pentru a selecta daca vrea sa vada loopkits, drumkits, multikits sau instrumentale
+-- termina pagina de foryou cu algoritmul de
+recomandari in functie de beat type, beat tag si
+timpul de ascultare al beaturilor cu acele taguri si tipuri
 
--- termina pagina de foryou cu algoritmul de recomandari in functie de beat type, beat tag si timpul de ascultare al beaturilor cu 
-   acele taguri si tipuri
-
--- cel mai probabil nu va fi doar pentru beaturi, dar si pentru trackurile artistilor (pana la urma e beatLINK nu beat)
+-- search bar pentru cautat useri, fa-l ca o pagina noua, click in navbar pe "cauta" si redirect pe o pagina
+ cu un search bar si un istoric al cautarilor
 
 ===================================
-- adauga functionalitate de foldere (buton de create folder si apoi iti alegi ce fisiere vrei sa pui in folder)
+DE FACUT CAT MAI CURAND
+===================================
+
+-- algoritm AI de recomandari
+
+-- pagina de admin pentru aplicatie (un tip de utilizator care sa poata vedea si edita orice postare, dupa actiunea unui admin,
+   utilizatorul va fi notificat de actiunea asupra contentului sau)
+
+-- formular cu "Contact an Admin"
+
+-- rescrie controlerele si modelele sa fie thick models instead of thick controllers (mai ai la recommendation controller)
+
+-- fa upload-ul mai scurt sau redirectioneaza pe alta pagina cat isi dau upload fisiere
+
+-- creste valoare de upload pentru fisiere (mai ales cand pui kituri)
+
+-- repara bug cu notificari prea multe (coboara dropdownu pana se strica pagina)
+
+-- lucreaza la pagina de upload si edit sa fie mai frumoase
+
+==================================
+DE FACUT PE TERMEN LUNG
+===================================
+
+-- sa afaci tagurile si type urile obligatorii
+
+-- lucreaza la notificari sa nu poata fi un user spamat cu notificari (love, hate, love, hate)
+
+-- buton de pause
+
+-- repara responsiveness pentru telefon...
+
+-- reset password cu email
+
+-- confirm account cu email
+===================================
+OPTIONAL UPGRADES
+===================================
+-- chat live pentru comunicare intre artisti si produceri
+-- algoritm AI de recomandari
+===================================

@@ -1,16 +1,18 @@
 <!-- resources/views/tracks/edit.blade.php -->
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">
             {{ __('Edit Track') }}
         </h2>
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+
+            {{-- ▼ Error Summary ▼ --}}
             @if ($errors->any())
-            <div class="mb-4 alert alert-danger">
-                <ul>
+            <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                <ul class="list-disc list-inside">
                     @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                     @endforeach
@@ -18,111 +20,113 @@
             </div>
             @endif
 
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 text-gray-900 dark:text-gray-100">
+            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
                 <form action="{{ route('tracks.update', $track) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
 
-                    <!-- Name -->
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Track Name</label>
+                    {{-- Name --}}
+                    <div class="mb-4">
+                        <label for="name" class="block font-medium text-gray-700 dark:text-gray-200">Track Name</label>
                         <input
                             type="text"
-                            class="form-control bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
                             id="name"
                             name="name"
                             value="{{ old('name', $track->name) }}"
-                            required>
+                            required
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                        <input type="hidden" id="original_name" value="{{ $track->name }}">
+                        <p id="name-warning" class="text-red-500 text-sm mt-1"></p>
                     </div>
-                    <input type="hidden" id="original_name" value="{{ $track->name }}">
-                    <p id="name-warning" class="text-red-500 text-sm mt-1"></p>
-                    @if (!auth()->user()->is_artist)
-                    <!-- Category -->
-                    <div class="mb-3">
-                        <label for="category" class="form-label text-gray-800 dark:text-gray-200">Category</label>
-                        @if($track->category !== 'loopkit' && $track->category !== 'drumkit' && $track->category !== 'multikit')
-                        <!-- Read-only category (instrumental) -->
-                        <input type="text"
-                            name="category"
+
+                    {{-- Category --}}
+                    @unless (auth()->user()->is_artist)
+                    <div class="mb-4">
+                        <label for="category" class="block font-medium text-gray-700 dark:text-gray-200">Category</label>
+                        @if (!in_array($track->category, ['loopkit', 'drumkit', 'multikit']))
+                        <input
+                            type="text"
                             id="category"
+                            name="category"
                             value="instrumental"
                             readonly
-                            class="form-control bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100 cursor-not-allowed">
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 cursor-not-allowed">
                         @else
-                        <!-- Editable dropdown for other categories -->
-                        <select class="form-select bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
+                        <select
                             id="category"
                             name="category"
-                            required>
-                            <option value="loopkit" {{ old('category', $track->category) === 'loopkit' ? 'selected' : '' }}>Loopkit</option>
-                            <option value="drumkit" {{ old('category', $track->category) === 'drumkit' ? 'selected' : '' }}>Drumkit</option>
-                            <option value="multikit" {{ old('category', $track->category) === 'multikit' ? 'selected' : '' }}>MultiKit</option>
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                            @foreach (['loopkit', 'drumkit', 'multikit'] as $cat)
+                            <option value="{{ $cat }}" {{ old('category', $track->category) === $cat ? 'selected' : '' }}>
+                                {{ ucfirst($cat) }}
+                            </option>
+                            @endforeach
                         </select>
                         @endif
                     </div>
-                    @endif
+                    @endunless
 
-                    @if($track->category !== 'loopkit' && $track->category !== 'drumkit' && $track->category !== 'multikit')
-                    <!-- Audio File input -->
-                    <div class="mb-3">
-                        <label for="audio_file" class="form-label text-gray-800 dark:text-gray-200">Audio File (.mp3 or .wav)</label>
-                        <input type="file"
+                    {{-- Audio File or Folder --}}
+                    @if (!in_array($track->category, ['loopkit', 'drumkit', 'multikit']))
+                    <div class="mb-4">
+                        <label for="audio_file" class="block font-medium text-gray-700 dark:text-gray-200">Audio File (.mp3 or .wav)</label>
+                        <input
+                            type="file"
                             id="audio_file"
                             name="audio_file"
                             accept=".mp3,.wav"
-                            class="block w-full text-sm text-gray-500
-                      file:mr-4 file:py-2 file:px-4
-                      file:rounded-full file:border-0
-                      file:text-sm file:font-semibold
-                      file:bg-blue-50 file:text-blue-700
-                      hover:file:bg-blue-100">
+                            class="mt-1 block w-full text-gray-700 dark:text-gray-200
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-blue-50 file:text-blue-700
+                            hover:file:bg-blue-100">
                         @if($track->file_path)
                         <p class="mt-2 text-sm text-gray-400">
-                            Current file: <strong>{{ basename($track->file_path) }}</strong>
+                            Current: <strong>{{ basename($track->file_path) }}</strong>
                         </p>
                         @endif
                     </div>
                     @else
-                    <!-- Folder input -->
-                    <div class="mb-3">
-                        <label for="audio_folder" class="form-label text-gray-800 dark:text-gray-200">Folder</label>
-                        <input type="file"
+                    <div class="mb-4">
+                        <label for="audio_folder" class="block font-medium text-gray-700 dark:text-gray-200">Audio Folder</label>
+                        <input
+                            type="file"
                             id="audio_folder"
                             name="audio_folder[]"
-                            webkitdirectory
-                            directory
-                            multiple
+                            webkitdirectory directory multiple
                             accept=".mp3,.wav"
-                            class="block w-full text-sm text-gray-500
-                      file:mr-4 file:py-2 file:px-4
-                      file:rounded-full file:border-0
-                      file:text-sm file:font-semibold
-                      file:bg-blue-50 file:text-blue-700
-                      hover:file:bg-blue-100">
-
-                        @if ($errors->has('audio_folder.*'))
-                        <div class="text-red-500 mb-4">
-                            Some files in the folder are not valid audio formats (.mp3 or .wav).
-                        </div>
-                        @endif
-
+                            class="mt-1 block w-full text-gray-700 dark:text-gray-200
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-blue-50 file:text-blue-700
+                            hover:file:bg-blue-100">
                         @if($track->folder_files)
                         <p class="mt-2 text-sm text-gray-400">
                             {{ count(json_decode($track->folder_files, true)) }} file(s) uploaded
                         </p>
                         @endif
+                        @error('audio_folder.*')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                     @endif
 
-                    <!-- Picture (optional) -->
-                    <div class="mb-3">
-                        <label for="picture" class="form-label text-gray-800 dark:text-gray-200">Cover Picture (optional)</label>
-                        <input type="file" class="block w-full text-sm text-gray-500 
-              file:mr-4 file:py-2 file:px-4 
-              file:rounded-full file:border-0 
-              file:text-sm file:font-semibold 
-              file:bg-blue-50 file:text-blue-700 
-              hover:file:bg-blue-100" id="picture" name="picture" accept="image/*">
+                    {{-- Picture --}}
+                    <div class="mb-4">
+                        <label for="picture" class="block font-medium text-gray-700 dark:text-gray-200">Cover Picture (optional)</label>
+                        <input
+                            type="file"
+                            id="picture"
+                            name="picture"
+                            accept="image/*"
+                            class="mt-1 block w-full text-gray-700 dark:text-gray-200
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-blue-50 file:text-blue-700
+                            hover:file:bg-blue-100">
                         @if($track->picture)
                         <div class="mt-2">
                             <img
@@ -133,50 +137,54 @@
                         @endif
                     </div>
 
-                    <!-- Tags -->
-                    <div class="mb-3">
-                        <label for="tags" class="form-label">Tags (comma-separated)</label>
+                    {{-- Tags --}}
+                    <div class="mb-4">
+                        <label for="tags" class="block font-medium text-gray-700 dark:text-gray-200">Tags (comma-separated)</label>
                         <input
                             type="text"
-                            class="form-control bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
                             id="tags"
                             name="tags"
-                            value="{{ old('tags', $track->tags ? $track->tags->pluck('name')->implode(', ') : '') }}">
+                            value="{{ old('tags', $track->tags?->pluck('name')->implode(', ') ?? '') }}"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100">
                     </div>
 
-
-                    <!-- Type -->
-                    <div class="mb-3">
-                        <label for="type_track" class="form-label">Type (artist style)</label>
+                    {{-- Types --}}
+                    <div class="mb-4">
+                        <label for="type_track" class="block font-medium text-gray-700 dark:text-gray-200">Types (artist style)</label>
                         <input
                             type="text"
-                            class="form-control bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
                             id="type_track"
                             name="type_track"
-                            value="{{ old('type_track', $track->types ? $track->types->pluck('name')->implode(', ') : '') }}">
+                            value="{{ old('type_track', $track->types?->pluck('name')->implode(', ') ?? '') }}"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100">
                     </div>
 
-
-                    <div class="mb-4">
-                        <label for="is_private" class="block font-semibold mb-1">Private?</label>
+                    {{-- Private --}}
+                    <div class="mb-6 flex items-center">
                         <input
                             type="checkbox"
-                            name="is_private"
                             id="is_private"
+                            name="is_private"
                             value="1"
-                            @checked(old('is_private', $track->is_private ?? false))
-                        >
-                        <span class="ml-2 text-sm text-gray-600">
-                            Check this box to make the track private (only you can see it).
-                        </span>
+                            {{ old('is_private', $track->is_private) ? 'checked' : '' }}
+                            class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded">
+                        <label for="is_private" class="ml-2 text-sm text-gray-700 dark:text-gray-200">
+                            Make this track private
+                        </label>
                     </div>
 
-                    <button type="submit" id="updateBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                        Update
-                    </button>
-                    <a href="{{ route('tracks.index') }}" class="ml-4 text-blue-500 hover:underline">
-                        Cancel
-                    </a>
+                    {{-- Submit --}}
+                    <div class="flex items-center justify-between">
+                        <button
+                            type="submit"
+                            id="updateBtn"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+                            Update Track
+                        </button>
+                        <a href="{{ route('tracks.index') }}" class="text-blue-500 hover:underline">
+                            Cancel
+                        </a>
+                    </div>
                 </form>
             </div>
         </div>

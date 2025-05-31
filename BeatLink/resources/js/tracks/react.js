@@ -1,8 +1,8 @@
 // resources/js/tracks/react.js
 
 //pull csrf tokens
-const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-const reactRoute = document.querySelector('meta[name="react-route"]').content;
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+const reactRoute = document.querySelector('meta[name="react-route"]')?.content || '';
 
 // keep a counter of the last request we sent for each track
 const lastRequestId = {};

@@ -5,6 +5,10 @@ STUFF TO KEEP IN MIND
 ASTAZI:
 ===================================
 
+-- adminii sa poata vedea pagina de chat a unui user fara sa poata interationa, doar sa poata vedea mesajele
+
+-- nu permite adminilor sa acceseze pagina normala a userilor
+
 -- repara sistemul de recomandari (se recomanda ciudat dupa scoruri, vezi in laravel.log)
 
 -- termina pagina de foryou cu algoritmul de
@@ -53,6 +57,5 @@ DE FACUT PE TERMEN LUNG
 ===================================
 OPTIONAL UPGRADES
 ===================================
--- chat live pentru comunicare intre artisti si produceri
 -- algoritm AI de recomandari
 ===================================

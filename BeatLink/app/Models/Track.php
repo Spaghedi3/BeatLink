@@ -15,9 +15,14 @@ use App\Models\User;
 use App\Models\Tag;
 use App\Models\Type;
 use App\Notifications\ReactionNotification;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class Track extends Model
 {
+
+    use SoftDeletes;
+
     protected $fillable = [
         'user_id',
         'name',

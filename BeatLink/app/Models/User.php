@@ -19,6 +19,7 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
+        'is_admin',
         'is_artist',
         'phone',
         'profile_picture',
@@ -32,6 +33,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_admin'         => 'boolean',
         'social_links'      => 'array',
     ];
 
@@ -102,5 +104,10 @@ class User extends Authenticatable
             ->count();
 
         return $unreadCount;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->is_admin;
     }
 }

@@ -6,7 +6,24 @@
         <div class="w-full max-w-[85vw] flex flex-col md:flex-row justify-center items-stretch gap-12">
 
             {{-- Profile Card --}}
-            <div class="dark:bg-gray-800 rounded-xl p-10 w-full md:w-[38%] flex flex-col items-center justify-center shadow-lg">
+            <div class="relative dark:bg-gray-800 rounded-xl p-10 w-full md:w-[38%] flex flex-col items-center justify-center shadow-lg">
+                {{-- Report Flag Icon (top-right) --}}
+                @if (auth()->check() && auth()->id() !== $user->id)
+                <a href="{{ route('report.user', $user->id) }}"
+                    class="absolute top-3 right-3 text-red-500 hover:text-red-700"
+                    title="Report user">
+                    <svg viewBox="0 0 24 24" version="1.1" xml:space="preserve"
+                        xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                        fill="currentColor" class="w-6 h-6">
+                        <path d="M17.7,4.7c-1.4-0.7-3-0.7-4.4,0c-0.8,0.4-1.8,0.4-2.6,0l-0.4-0.2C9.3,4,8.1,3.9,6.9,4.1L6.2,4.3C5,4.6,4.2,5.6,4,6.9 
+                            C4,6.9,4,7,4,7v0.2v6.4V19c0,0.6,0.4,1,1,1s1-0.4,1-1v-4.6L7.4,14c0.7-0.2,1.4-0.1,2,0.2l0.5,0.2c0.7,0.3,1.4,0.5,2.2,0.5 
+                            c0.8,0,1.5-0.2,2.3-0.5c0.8-0.4,1.8-0.4,2.6,0h0c0.7,0.3,1.5,0.3,2.1-0.1c0.7-0.4,1.1-1.1,1.1-1.9v-4C20,6.9,19.1,5.5,17.7,4.7z 
+                            M18,12.5c0,0.1-0.1,0.1-0.1,0.2c-0.1,0-0.1,0-0.2,0c-1.4-0.7-3-0.7-4.4,0c-0.8,0.4-1.8,0.4-2.6,0l-0.5-0.2 
+                            c-0.7-0.3-1.4-0.5-2.2-0.5c-0.4,0-0.8,0-1.2,0.1L6,12.3V7.2c0-0.4,0.3-0.8,0.7-0.9l0.7-0.2c0.7-0.2,1.4-0.1,2,0.2l0.4,0.2 
+                            c1.4,0.7,3,0.7,4.4,0c0.8-0.4,1.8-0.4,2.6,0c0.8,0.4,1.2,1.2,1.2,2V12.5z"></path>
+                    </svg>
+                </a>
+                @endif
                 <img src="{{ $user->profile_picture ? Storage::url($user->profile_picture) : asset('storage/images/default-profile.png') }}"
                     class="w-44 h-44 rounded-full object-cover mb-6 border-4 border-white"
                     alt="Profile Picture" />
@@ -49,9 +66,6 @@
                         Check out my tracks
                     </a>
                 </div>
-
-                <a href="{{ route('user', ['id' => $user->id]) }}">Message me</a>
-
             </div>
         </div>
 
@@ -65,7 +79,16 @@
                     Edit Profile
                 </a>
             </div>
-            @endif
         </div>
+        @else
+        <br>
+        <div class="">
+            <div class="text-center">
+                <a href="{{ route('user', ['id' => $user->id]) }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+                    Message me
+                </a>
+            </div>
+        </div>
+        @endif
     </div>
 </x-app-layout>

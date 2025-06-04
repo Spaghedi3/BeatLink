@@ -97,6 +97,29 @@
                     </div>
                 </div>
                 @endif
+                @if ($track->user_id !== auth()->id())
+                <div x-data="{ open: false }" class="relative inline-block text-left">
+                    <!-- Arrow Icon -->
+                    <button @click="open = !open" class="text-gray-500 hover:text-red-600 focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                            viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 6v.01M12 12v.01M12 18v.01" />
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown -->
+                    <div x-show="open"
+                        @click.outside="open = false"
+                        x-transition
+                        class="absolute mt-2 bg-white border border-gray-200 rounded shadow-md z-10">
+                        <a href="{{ route('report.track', $track->id) }}"
+                            class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                            Report track
+                        </a>
+                    </div>
+                </div>
+                @endif
             </div>
             <!-- Image container -->
             <div class="relative group w-full h-48 border-2 border-purple-500 flex items-center justify-center overflow-hidden">
@@ -175,7 +198,7 @@
             </audio>
             @endif
 
-            <!-- Icon row (config, play, delete) -->
+            <!-- Icon row (love, hate) -->
             <div class="flex items-center justify-evenly mt-4">
 
                 <div class="flex flex-col items-center">
@@ -210,7 +233,6 @@
                     <span id="count-hate-{{ $track->id }}" class="text-sm mt-1 text-gray-300">{{ $track->hated_count }}</span>
                 </div>
             </div>
-
         </div>
         @endforeach
 

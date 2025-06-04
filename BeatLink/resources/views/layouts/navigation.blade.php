@@ -33,12 +33,12 @@
             <!-- Right side: Settings / Auth -->
             <div class="hidden sm:flex sm:items-center sm:ms-6 gap-3 overflow-visible">
                 @auth
-                <!-- Notification Icon -->
+                <!-- Notification Icon with improved dropdown -->
                 <div class="relative w-10 h-10 flex items-center justify-center">
                     @php $unread = auth()->user()->unreadNotifications->count(); @endphp
-                    <x-dropdown align="right" width="48">
+                    <x-dropdown align="right" width="96">
                         <x-slot name="trigger">
-                            <button class="relative flex items-center justify-center text-gray-400 hover:text-white translate-y-[1px]">
+                            <button class="relative flex items-center justify-center text-gray-400 hover:text-white translate-y-[1px] transition-colors duration-200">
                                 <!-- Bell Icon -->
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5"
@@ -50,7 +50,7 @@
                                 @if($unread > 0)
                                 <!-- Badge -->
                                 <span class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[10px]
-                             font-semibold rounded-full flex items-center justify-center leading-none">
+                     font-semibold rounded-full flex items-center justify-center leading-none">
                                     {{ $unread }}
                                 </span>
                                 @endif
@@ -58,35 +58,121 @@
                         </x-slot>
 
                         <x-slot name="content">
-                            <div class="py-1">
+                            <!-- Header with better spacing -->
+                            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+                                <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Notifications</h3>
+                                @if($unread > 0)
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ $unread }} unread</p>
+                                @endif
+                            </div>
+
+                            <!-- Scrollable notifications container with improved spacing -->
+                            <div class="notifications-scroll-container max-h-80 overflow-y-auto">
                                 @forelse(auth()->user()->unreadNotifications as $note)
                                 @php
                                 $data = $note->data;
-                                $actorUsername = $data['actor_username']
-                                ?? \App\Models\User::find($data['actor_id'])->username;
+                                $actor = isset($data['actor_id']) ? \App\Models\User::find($data['actor_id']) : null;
+                                $isAdmin = $actor?->is_admin ?? false;
+                                $actorUsername = $data['actor_username'] ?? ($actor?->username ?? 'System');
+
+                                $iconSvg = '';
+                                if (str_contains(strtolower($data['message']), 'removed')) {
+                                $iconSvg = '<svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>';
+                                } elseif (str_contains(strtolower($data['message']), 'restored')) {
+                                $iconSvg = '<svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                                </svg>';
+                                } else {
+                                $iconSvg = '<svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                </svg>';
+                                }
                                 @endphp
 
-                                <x-dropdown-link :href="route('notifications.read.one', $note->id)">
-                                    {{ $note->data['message'] }}
-                                    <span class="block text-xs text-gray-500">
-                                        {{ $note->created_at->diffForHumans() }}
-                                    </span>
+                                @if($isAdmin)
+                                <!-- Admin notification: not a link, but clickable to mark as read -->
+                                <form method="POST" action="{{ route('notifications.read.one', $note->id) }}">
+                                    @csrf
+                                    <button type="submit"
+                                        class="w-full text-left block px-6 py-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200">
+                                        <div class="flex items-start space-x-3">
+                                            <div class="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mt-0.5">
+                                                {!! $iconSvg !!}
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100 leading-5">
+                                                    {{ $data['message'] }}
+                                                </p>
+                                                <div class="mt-2 flex items-center justify-between">
+                                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                        {{ $note->created_at->diffForHumans() }}
+                                                    </span>
+                                                    @if(!empty($data['reason']))
+                                                    <span class="inline-block mt-2 px-3 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 leading-snug max-w-[140px] break-words text-center">
+                                                        Violation of platform<br>rules
+                                                    </span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </form>
+                                @else
+                                <!-- Regular user notification (clickable link) -->
+                                <x-dropdown-link :href="route('notifications.read.one', $note->id)"
+                                    class="block px-6 py-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200">
+                                    <div class="flex items-start space-x-3">
+                                        <div class="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mt-0.5">
+                                            {!! $iconSvg !!}
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100 leading-5">
+                                                {{ $data['message'] }}
+                                            </p>
+                                            <div class="mt-2 flex items-center justify-between">
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                    {{ $note->created_at->diffForHumans() }}
+                                                </span>
+                                                @if(!empty($data['reason']))
+                                                <span class="inline-block mt-2 px-3 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 leading-snug max-w-[140px] break-words text-center">
+                                                    Violation of platform<br>rules
+                                                </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
                                 </x-dropdown-link>
+                                @endif
 
                                 @empty
-                                <div class="px-4 py-2 text-sm text-gray-500">
-                                    No new notifications
+                                <div class="px-6 py-8 text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5-5-5h5v-7h5v7z" />
+                                    </svg>
+                                    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No notifications</h3>
+                                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">You're all caught up!</p>
                                 </div>
                                 @endforelse
-                                <div class="flex justify-center mt-2">
-                                    <form action="{{ route('notifications.read.all') }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="text-sm text-blue-500 hover:underline">
-                                            Mark all as read
-                                        </button>
-                                    </form>
-                                </div>
                             </div>
+
+
+                            <!-- Footer with better styling -->
+                            @if($unread > 0)
+                            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+                                <form action="{{ route('notifications.read.all') }}" method="POST" class="flex justify-center">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200 dark:text-blue-400 dark:bg-blue-900 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                        Mark all as read
+                                    </button>
+                                </form>
+                            </div>
+                            @endif
                         </x-slot>
                     </x-dropdown>
                 </div>

@@ -10,6 +10,8 @@ import './tracks/name-exists.js';
 
 import './tracks/react.js';
 
+import './topFunction.js';
+
 import { destroyAudio } from './cleanup.js';
 
 import Alpine from 'alpinejs';

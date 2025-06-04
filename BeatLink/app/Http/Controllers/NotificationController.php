@@ -24,8 +24,16 @@ class NotificationController extends Controller
 
         $notification->markAsRead();
 
-        $username = $notification->data['actor_username'] ?? \App\Models\User::find($notification->data['actor_id'])->username;
+        if (!isset($notification->data['actor_id'])) {
+            return back();
+        }
 
-        return redirect()->route('user.tracks', $username);
+        $actor = User::find($notification->data['actor_id']);
+
+        if (!$actor) {
+            return back();
+        }
+
+        return redirect()->route('user.tracks', $actor->username);
     }
 }

@@ -15,19 +15,25 @@ class TrackController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Track::with('user');
         $query = \App\Models\Track::withTrashed()->with('user');
 
         if ($request->filled('search')) {
             $q = $request->input('search');
-            $query->where('title', 'like', "%{$q}%");
+
+            $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%{$q}%")
+                    ->orWhere('category', 'like', "%{$q}%")
+                    ->orWhereHas('user', function ($userQuery) use ($q) {
+                        $userQuery->where('username', 'like', "%{$q}%");
+                    });
+            });
         }
 
         $tracks = $query->orderBy('created_at', 'desc')->paginate(15);
 
-
         return view('admin.tracks.index', compact('tracks'));
     }
+
 
     /**
      * Show a single track’s details in the admin panel (including soft-deleted ones).

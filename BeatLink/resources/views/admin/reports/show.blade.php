@@ -5,7 +5,7 @@
 @section('page-heading', 'Report Details')
 
 @section('content')
-<div class="bg-white shadow rounded-lg p-6">
+<div class="bg-gray-800 text-white shadow rounded-lg p-6">
     <h2 class="text-2xl font-semibold mb-4">Report #{{ $report->id }}</h2>
 
     {{-- Reporter and Date --}}
@@ -33,7 +33,7 @@
 
             @if ($report->type === 'track')
             <a href="{{ route('admin.tracks.show', $item->id) }}" class="text-blue-600 hover:underline">
-                {{ $item->title ?? 'Untitled Track' }}
+                {{ $item->name ?? 'Untitled Track' }}
             </a>
             @elseif ($report->type === 'user')
             <a href="{{ route('admin.users.show', $item->id) }}" class="text-blue-600 hover:underline">

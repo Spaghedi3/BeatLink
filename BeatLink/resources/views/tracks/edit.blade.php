@@ -83,7 +83,7 @@
                             hover:file:bg-blue-100">
                         @if($track->file_path)
                         <p class="mt-2 text-sm text-gray-400">
-                            Current: <strong>{{ basename($track->file_path) }}</strong>
+                            Current: <strong>{{ basename($track->name) }}</strong>
                         </p>
                         @endif
                     </div>

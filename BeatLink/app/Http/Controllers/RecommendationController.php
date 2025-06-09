@@ -264,36 +264,66 @@ SQL,
     {
         $userId = Auth::id();
 
-        // (Re)compute their affinity stats
-        $this->updateAffinityStats($userId);
+        // Check if ML-based recommendations exist
+        $mlRecs = \App\Models\Recommendation::where('user_id', $userId)
+            ->orderByDesc('predicted_rating')
+            ->pluck('track_id');
 
-        // Load all tag & type scores for this user
-        $tagScores  = DB::table('user_tag_stats')
-            ->where('user_id', $userId)
-            ->pluck('score', 'tag_id')
-            ->toArray();
-
-        $typeScores = DB::table('user_type_stats')
-            ->where('user_id', $userId)
-            ->pluck('score', 'type_id')
-            ->toArray();
-
-        // If they have no stats, fall back to index()
-        if (empty($tagScores) && empty($typeScores)) {
+        if ($mlRecs->isEmpty()) {
+            // Fall back to affinity-based or popularity if cold-start
             return $this->index($request);
         }
 
-        // Fetch your whole candidate pool (excluding their own tracks)
-        // — you can optionally add category/search/bpm filters here if you like
-        $candidates = Track::with(['tags', 'types', 'user', 'reactions' => fn($q) => $q->where('user_id', $userId)])
-            ->where('user_id', '!=', $userId)
-            ->get();
+        // Retrieve full track data
+        $idList = $mlRecs->take(100)->implode(',');
+        $query = $request->input('search');
+        $categories = $request->input('category');
 
-        // 3) Draw up to 100 by weighted affinity
-        $tracks = $this->weightedSampleByAffinity($candidates, $tagScores, $typeScores, 100)
-            ->each(fn($t) => $t->userReactedWith = $t->reactions->first()?->reaction);
+        $tracksQuery = Track::query()
+            ->with(['user', 'tags', 'types', 'reactions' => fn($q) => $q->where('user_id', $userId)])
+            ->whereIn('id', $mlRecs);
 
-        // 4) Render
-        return view('dashboard', compact('tracks'));
+        if ($query) {
+            $tracksQuery->where(function ($q) use ($query) {
+                $q->where('name', 'like', '%' . $query . '%')
+                    ->orWhere('category', 'like', '%' . $query . '%')
+                    ->orWhereHas('tags', fn($tagQ) => $tagQ->where('name', 'like', '%' . $query . '%'))
+                    ->orWhereHas('types', fn($typeQ) => $typeQ->where('name', 'like', '%' . $query . '%'));
+            });
+        }
+
+        if ($request->filled('bpm_range')) {
+            $input = trim($request->input('bpm_range'));
+            if (str_contains($input, '-')) {
+                [$min, $max] = array_map('trim', explode('-', $input, 2));
+                if (is_numeric($min) && is_numeric($max) && (int)$min <= (int)$max) {
+                    $tracksQuery->whereBetween('bpm', [(int)$min, (int)$max]);
+                }
+            } elseif (is_numeric($input)) {
+                $tracksQuery->where('bpm', (int)$input);
+            }
+        }
+
+        if ($request->filled('key')) {
+            $tracksQuery->where('key', $request->input('key'));
+        }
+
+        if ($request->filled('scale')) {
+            $tracksQuery->where('scale', $request->input('scale'));
+        }
+
+        if ($categories && !Auth::user()->is_artist) {
+            $tracksQuery->whereIn('category', $categories);
+        }
+
+        // Maintain ML-based ordering
+        $filteredTracks = $tracksQuery->get();
+        $filteredTracks = $filteredTracks->sortBy(fn($track) => array_search($track->id, $mlRecs->toArray()))->values();
+
+        $filteredTracks->each(function ($track) {
+            $track->userReactedWith = $track->reactions->first()?->reaction;
+        });
+
+        return view('dashboard', ['tracks' => $filteredTracks]);
     }
 }

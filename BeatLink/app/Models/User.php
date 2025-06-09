@@ -55,6 +55,12 @@ class User extends Authenticatable
             ->wherePivot('reaction', 'love');
     }
 
+    public function privateTracks()
+    {
+        return $this->hasMany(Track::class)->where('is_private', 1);
+    }
+
+
     public function updateFromProfile(array $data, ?UploadedFile $picture = null): self
     {
         if ($picture) {

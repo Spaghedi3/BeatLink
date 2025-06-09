@@ -49,6 +49,7 @@ Route::middleware(['auth', 'can:access-admin'])
         Route::post('reports/{report}/resolve', [AdminReportController::class, 'resolve'])
             ->name('reports.resolve');
 
+
         // — Admin Users —
         Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
         Route::get('users/{user}', [AdminUserController::class, 'show'])->name('users.show');
@@ -83,6 +84,7 @@ Route::group([
     // Track Routes
     Route::get('/tracks', [TrackController::class, 'index'])->name('tracks.index');
     Route::get('/favorites', [TrackController::class, 'favorites'])->name('tracks.favorites');
+    Route::get('/privates', [TrackController::class, 'privates'])->name('tracks.privates');
     Route::post('/tracks', [TrackController::class, 'store'])->name('tracks.store');
     Route::get('/tracks/create', [TrackController::class, 'create'])->name('tracks.create');
     Route::get('/{username}/tracks', [TrackController::class, 'userTracks'])->name('user.tracks');

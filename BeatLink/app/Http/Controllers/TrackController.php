@@ -34,6 +34,12 @@ class TrackController extends Controller
         return redirect()->route('tracks.index')->with('success', 'Deleted.');
     }
 
+    public function destroyConfirm(Track $track)
+    {
+        return view('tracks.destroy-confirm', compact('track'));
+    }
+
+
     function index(Request $r)
     {
         $tracks = Track::ownedBy(Auth::id())
@@ -93,5 +99,12 @@ class TrackController extends Controller
         $tracks = Track::favoritesForUser($request);
 
         return view('tracks.favorites', compact('tracks'));
+    }
+
+    public function privates(Request $request)
+    {
+        $tracks = Track::privatesForUser($request);
+
+        return view('tracks.privates', compact('tracks'));
     }
 }

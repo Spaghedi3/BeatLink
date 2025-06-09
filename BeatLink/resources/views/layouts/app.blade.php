@@ -11,7 +11,7 @@
     <meta name="interactions-route" content="{{ route('interactions.store') }}">
     <meta name="react-route" content="{{ route('reaction.react') }}">
     @vite(['resources/css/app.css','resources/js/app.js'])
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>BeatLink</title>
 </head>
 
 <body class="font-sans antialiased">

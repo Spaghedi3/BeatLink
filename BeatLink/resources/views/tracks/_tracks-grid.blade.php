@@ -245,6 +245,11 @@
         </a>
         @endif
     </div>
+    <button id="myBtn"
+        title="Go to top"
+        class="fixed bottom-8 right-8 bg-blue-600 text-white px-4 py-2 rounded shadow hidden z-50">
+        Top
+    </button>
 </div>
 <script>
     window.routes = {

@@ -5,7 +5,8 @@
 @section('page-heading', 'Track Details')
 
 @section('content')
-<div class="bg-white shadow rounded-lg p-6">
+
+<body class="bg-gray-900 text-gray-100 font-sans antialiased">
     <h2 class="text-2xl font-semibold mb-4">{{ $track->title }} (ID: {{ $track->id }})</h2>
 
     <div class="mb-4 space-y-2">
@@ -49,7 +50,7 @@
     <div class="mb-6">
         <strong>Audio Preview:</strong>
         <div class="relative mt-2">
-            <audio controls class="w-full rounded border shadow" id="track-preview">
+            <audio controls class="w-full rounded shadow" id="track-preview">
                 <source src="{{ Storage::url($track->file_path) }}" type="audio/mpeg">
                 Your browser does not support the audio element.
             </audio>
@@ -66,9 +67,11 @@
             <li class="flex items-center gap-3">
                 <button type="button"
                     onclick="toggleHoverPlay(this, '{{ Storage::url($file) }}')"
-                    class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full text-sm">
-                    ▶
+                    class="text-white px-3 py-1 rounded-full text-sm flex items-center justify-center w-8 h-8">
+                    <span class="play-icon block">▶</span>
+                    <span class="pause-icon hidden">⏸</span>
                 </button>
+
                 <span class="truncate">{{ basename($file) }}</span>
             </li>
             @endforeach
@@ -94,25 +97,24 @@
     @endif
 
     {{-- Moderation Actions --}}
-    <div class="mt-8 space-y-3">
-        <h2 class="text-lg font-semibold">Moderation Actions</h2>
-
+    <h2 class="text-lg font-semibold">Moderation Actions</h2>
+    <div class="flex space-x-4 mt-6">
         {{-- Delete Track --}}
         <form action="{{ route('admin.tracks.destroy', $track) }}" method="POST"
             onsubmit="return confirm('Are you sure you want to permanently delete this track?');">
             @csrf
             @method('DELETE')
-            <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+            <button class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded w-full h-full">
                 Permanently Delete Track
             </button>
         </form>
-    </div>
 
-    <div>
-        <a href="{{ route('admin.reports.index') }}"
-            class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
-            Back to Reports
-        </a>
+        <div>
+            <a href="{{ route('admin.reports.index') }}"
+                class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded font-medium h-full inline-flex items-center justify-center">
+                Back to Reports
+            </a>
+        </div>
     </div>
-</div>
-@endsection
+    </div>
+    @endsection

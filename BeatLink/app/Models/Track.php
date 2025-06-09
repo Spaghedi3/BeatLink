@@ -15,13 +15,14 @@ use App\Models\User;
 use App\Models\Tag;
 use App\Models\Type;
 use App\Notifications\ReactionNotification;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 
 class Track extends Model
 {
 
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
 
     protected $fillable = [
         'user_id',
@@ -323,6 +324,17 @@ class Track extends Model
             ->filterScopesFromRequest($r)
             ->get()
             ->each(fn($t) => $t->userReactedWith = 'love');
+    }
+
+    public static function privatesForUser(Request $r)
+    {
+        $user = User::findOrFail(Auth::id());
+
+        return $user->privateTracks()
+            ->with(['user', 'tags', 'types'])
+            ->filterScopesFromRequest($r)
+            ->get()
+            ->each(fn($t) => $t->is_private = 1);
     }
 
     public static function nameExists(string $name, ?int $exceptId = null): bool

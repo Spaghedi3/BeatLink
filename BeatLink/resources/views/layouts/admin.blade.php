@@ -5,77 +5,67 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title') &ndash; Admin</title>
-    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <title>@yield('title') – Admin</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="min-h-screen bg-gray-100 font-sans antialiased">
+<body class="bg-gray-900 text-gray-100 font-sans antialiased">
 
-    {{-- Top header --}}
-    <header class="bg-white shadow-sm border-b">
-        <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="text-xl font-bold">
-                Admin Panel
+    <div class="flex h-screen overflow-hidden">
+        {{-- Sidebar --}}
+        <aside class="w-64 bg-gray-800 flex flex-col space-y-4 p-6">
+            <h1 class="text-2xl font-bold mb-2">Admin Panel</h1>
+            <div class="text-sm text-gray-300 mb-6">
+                Hello, <span class="font-semibold">{{ auth()->user()->name ?: auth()->user()->username }}</span>
             </div>
-            <div class="flex items-center space-x-4">
-                {{-- Greet by name or username --}}
-                <span class="text-gray-700">
-                    Hello, {{ auth()->user()->name ?: auth()->user()->username }}
-                </span>
-                <a href="{{ route('logout') }}"
-                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                    class="text-red-600 hover:underline">
-                    Logout
-                </a>
-                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
-                    @csrf
-                </form>
-            </div>
-        </div>
 
-        {{-- Secondary nav: Dashboard, Reports, Users, Tracks --}}
-        <nav class="bg-gray-50 border-t">
-            <div class="max-w-5xl mx-auto px-4 py-2 flex space-x-6">
+            <nav class="flex flex-col space-y-3 text-gray-300 text-base">
                 <a href="{{ route('admin.dashboard') }}"
-                    class="text-gray-800 hover:text-gray-600 {{ request()->routeIs('admin.dashboard') ? 'font-semibold' : '' }}">
-                    Dashboard
+                    class="{{ request()->routeIs('admin.dashboard') ? 'text-white font-semibold' : 'hover:text-white' }}">
+                    📊 Dashboard
                 </a>
                 <a href="{{ route('admin.reports.index') }}"
-                    class="text-gray-800 hover:text-gray-600 {{ request()->routeIs('admin.reports.*') ? 'font-semibold' : '' }}">
-                    Reports
+                    class="{{ request()->routeIs('admin.reports.*') ? 'text-white font-semibold' : 'hover:text-white' }}">
+                    🚩 Reports
                 </a>
                 <a href="{{ route('admin.users.index') }}"
-                    class="text-gray-800 hover:text-gray-600 {{ request()->routeIs('admin.users.*') ? 'font-semibold' : '' }}">
-                    Users
+                    class="{{ request()->routeIs('admin.users.*') ? 'text-white font-semibold' : 'hover:text-white' }}">
+                    👤 Users
                 </a>
                 <a href="{{ route('admin.tracks.index') }}"
-                    class="text-gray-800 hover:text-gray-600 {{ request()->routeIs('admin.tracks.*') ? 'font-semibold' : '' }}">
-                    Tracks
+                    class="{{ request()->routeIs('admin.tracks.*') ? 'text-white font-semibold' : 'hover:text-white' }}">
+                    🎵 Tracks
                 </a>
+                <form action="{{ route('logout') }}" method="POST" class="mt-6">
+                    @csrf
+                    <button type="submit"
+                        class="text-red-400 hover:text-red-600 text-sm font-medium">
+                        🚪 Logout
+                    </button>
+                </form>
+            </nav>
+        </aside>
+
+        {{-- Main content --}}
+        <main class="flex-1 p-10 overflow-y-auto bg-gray-900">
+            {{-- Page heading --}}
+            <h2 class="text-3xl font-bold text-white mb-6">@yield('page-heading')</h2>
+
+            {{-- Flash messages --}}
+            @if(session('success'))
+            <div class="mb-4 p-4 bg-green-600 text-white rounded">
+                {{ session('success') }}
             </div>
-        </nav>
-    </header>
-
-    {{-- Main content area --}}
-    <main class="max-w-5xl mx-auto px-4 py-8">
-        {{-- Page heading --}}
-        <h1 class="text-3xl font-semibold mb-6">@yield('page-heading')</h1>
-
-        {{-- Flash messages --}}
-        @if(session('success'))
-        <div class="mb-4 p-4 bg-green-100 text-green-800 rounded">
-            {{ session('success') }}
-        </div>
-        @endif
-        @if(session('error'))
-        <div class="mb-4 p-4 bg-red-100 text-red-800 rounded">
-            {{ session('error') }}
-        </div>
-        @endif
-
-        {{-- Page content --}}
-        @yield('content')
-    </main>
+            @endif
+            @if(session('error') && !request()->is('admin*'))
+            <div class="mb-4 p-4 bg-red-600 text-white rounded">
+                {{ session('error') }}
+            </div>
+            @endif
+            {{-- Page content --}}
+            @yield('content')
+        </main>
+    </div>
 
 </body>
 

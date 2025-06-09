@@ -8,28 +8,31 @@
 {{-- Filters bar --}}
 <div class="mb-4 flex space-x-4">
     <form method="GET" action="{{ route('admin.reports.index') }}" class="flex space-x-2">
-        <select name="status" class="border rounded px-2 py-1">
+        <select name="status" class="bg-gray-800 text-white border border-gray-600 rounded px-3 py-2">
             <option value="">All Statuses</option>
-            <option value="open" {{ request('status') == 'open' ? 'selected' : '' }}>Open</option>
-            <option value="in_review" {{ request('status') == 'in_review' ? 'selected' : '' }}>In Review</option>
-            <option value="resolved" {{ request('status') == 'resolved' ? 'selected' : '' }}>Resolved</option>
+            <option value="open">Open</option>
+            <option value="in_review">In Review</option>
+            <option value="resolved">Resolved</option>
         </select>
-        <select name="type" class="border rounded px-2 py-1">
+
+        <select name="type" class="bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 ml-2">
             <option value="">All Types</option>
-            <option value="track" {{ request('type') == 'track' ? 'selected' : '' }}>Track</option>
-            <option value="user" {{ request('type') == 'user' ? 'selected' : '' }}>User</option>
-            <option value="app" {{ request('type') == 'app' ? 'selected' : '' }}>App</option>
+            <option value="user">User</option>
+            <option value="track">Track</option>
         </select>
-        <button type="submit" class="bg-gray-600 text-white rounded px-3 py-1">Filter</button>
+
+        <button type="submit" class="ml-2 bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded">
+            Filter
+        </button>
     </form>
 </div>
 
 {{-- Reports table --}}
 <div class="bg-white shadow rounded-lg overflow-x-auto">
-    <table class="min-w-full">
-        <thead class="bg-gray-100 text-left">
+    <table class="min-w-full text-sm text-left text-white bg-gray-900">
+        <thead class="bg-gray-700 text-white">
             <tr>
-                <th class="px-4 py-2">ID</th>
+                <th class="px-4 py-2">#</th>
                 <th class="px-4 py-2">Type</th>
                 <th class="px-4 py-2">Item</th>
                 <th class="px-4 py-2">Reporter</th>
@@ -40,69 +43,43 @@
             </tr>
         </thead>
         <tbody>
-            @forelse($reports as $report)
-            <tr class="{{ $report->status === 'open' ? 'bg-yellow-50' : '' }}">
-                <td class="border-t px-4 py-2">{{ $report->id }}</td>
-                <td class="border-t px-4 py-2 capitalize">{{ $report->type }}</td>
-                <td class="border-t px-4 py-2">
-                    @if($report->reportable)
-                    @php $item = $report->reportable; @endphp
-
-                    @if($report->type === 'track' && isset($item->title))
-                    <a href="{{ route('admin.tracks.show', $item->id) }}" class="text-blue-600 hover:underline">
-                        {{ Str::limit($item->title, 30) }}
-                    </a>
-                    @elseif($report->type === 'user' && isset($item->name))
-                    <a href="{{ route('admin.users.show', $item->id) }}" class="text-blue-600 hover:underline">
-                        {{ $item->name }}
-                    </a>
+            @foreach($reports as $report)
+            <tr class="{{ $report->status === 'resolved' ? 'bg-gray-800 hover:bg-gray-700 text-gray-400 italic' : 'bg-gray-800 hover:bg-gray-700' }}">
+                <td class="px-4 py-2">{{ $report->id }}</td>
+                <td class="px-4 py-2">{{ ucfirst($report->type) }}</td>
+                <td class="px-4 py-2">
+                    @if ($report->reportable)
+                    {{ $report->reportable->name ?? $report->reportable->title ?? 'N/A' }}
                     @else
-                    {{ ucfirst($report->type) }}
-                    @endif
-                    @else
-                    <span class="text-gray-500 italic">Deleted</span>
+                    <span class="italic text-gray-400">Deleted</span>
                     @endif
                 </td>
-
-                <td class="border-t px-4 py-2">
-                    {{ $report->reporter?->username ?? 'Unknown' }}
-                </td>
-
-
-
-                <td class="border-t px-4 py-2">{{ Str::limit($report->reason, 40) }}</td>
-                <td class="border-t px-4 py-2 capitalize">{{ str_replace('_',' ',$report->status) }}</td>
-                <td class="border-t px-4 py-2">{{ $report->created_at->diffForHumans() }}</td>
-                <td class="border-t px-4 py-2">
-                    <a href="{{ route('admin.reports.show', $report) }}"
-                        class="text-indigo-600 hover:underline mr-2">
-                        View
-                    </a>
+                <td class="px-4 py-2">{{ $report->reporter->username ?? 'Unknown' }}</td>
+                <td class="px-4 py-2">{{ Str::limit($report->reason, 40) }}</td>
+                <td class="px-4 py-2">{{ ucfirst($report->status) }}</td>
+                <td class="px-4 py-2">{{ $report->created_at->diffForHumans() }}</td>
+                <td class="px-4 py-2 space-x-2">
+                    <a href="{{ route('admin.reports.show', $report) }}" class="text-blue-400 hover:underline">View</a>
                     @if($report->status !== 'resolved')
                     <form action="{{ route('admin.reports.resolve', $report) }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" class="text-green-600 hover:underline">
+                        <button type="submit" class="text-green-400 hover:underline bg-transparent border-none p-0">
                             Resolve
                         </button>
                     </form>
+
                     @else
-                    <span class="text-gray-500 italic">Resolved</span>
+                    <span class="text-gray-400 italic">Resolved</span>
                     @endif
                 </td>
             </tr>
-            @empty
-            <tr>
-                <td colspan="8" class="px-4 py-6 text-center text-gray-500">
-                    No reports found.
-                </td>
-            </tr>
-            @endforelse
+            @endforeach
         </tbody>
     </table>
-
     {{-- Pagination controls --}}
-    <div class="p-4">
+    <div class="bg-gray-900 p-4 flex justify-center">
         {{ $reports->withQueryString()->links() }}
     </div>
+
 </div>
 @endsection

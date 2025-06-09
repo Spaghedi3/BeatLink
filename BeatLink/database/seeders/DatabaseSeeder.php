@@ -19,7 +19,14 @@ class DatabaseSeeder extends Seeder
         //     'username' => 'TestUser',
         //     'email' => 'test@example.com',
         // ]);
+
+        \App\Models\User::factory(50)->create();
+
         $this->call([
+            TagSeeder::class,
+            TypeSeeder::class,
+            TrackSeeder::class,
+            InteractionSeeder::class,
             AdminUserSeeder::class,
             ReportSeeder::class,
         ]);

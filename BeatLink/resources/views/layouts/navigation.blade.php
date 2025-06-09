@@ -25,7 +25,12 @@
                 </div>
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('tracks.favorites')" :active="request()->routeIs('tracks.favorites')">
-                        {{ __('Favorites') }}
+                        {{ __('Favorite Tracks') }}
+                    </x-nav-link>
+                </div>
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link :href="route('tracks.privates')" :active="request()->routeIs('tracks.privates')">
+                        {{ __('Private Tracks') }}
                     </x-nav-link>
                 </div>
             </div>

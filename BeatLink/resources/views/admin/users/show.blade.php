@@ -5,7 +5,8 @@
 @section('page-heading', 'User Details')
 
 @section('content')
-<div class="bg-white shadow rounded-lg p-6">
+
+<body class="bg-gray-900 text-gray-100 font-sans antialiased">
     <h2 class="text-2xl font-semibold mb-4">{{ $user->name }} (ID: {{ $user->id }})</h2>
 
     <div class="mb-4 space-y-2">
@@ -29,20 +30,23 @@
     @endif
 
     {{-- Ban Button (only if the user is NOT an admin and not yourself) --}}
-    @if (!$user->is_admin && $user->id !== auth()->id())
-    <form action="{{ route('admin.users.ban', $user) }}" method="POST" onsubmit="return confirm('Are you sure you want to ban this user?');">
-        @csrf
-        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded">
-            Ban User
-        </button>
-    </form>
-    @endif
+    <div class="flex space-x-4 mt-6">
+        @if (!$user->is_admin && $user->id !== auth()->id())
+        <form action="{{ route('admin.users.ban', $user) }}" method="POST"
+            onsubmit="return confirm('Are you sure you want to ban this user?');">
+            @csrf
+            <button type="submit"
+                class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded w-full h-full">
+                Ban User
+            </button>
+        </form>
+        @endif
 
-    <div>
         <a href="{{ route('admin.reports.index') }}"
-            class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
+            class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded font-medium h-full inline-flex items-center justify-center">
             Back to Reports
         </a>
     </div>
-</div>
-@endsection
+
+    </div>
+    @endsection

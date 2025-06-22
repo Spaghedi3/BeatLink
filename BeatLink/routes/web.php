@@ -16,7 +16,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\TrackController as AdminTrackController;
-
+use App\Models\User;
 
 $blockAdmins = function (Request $request, Closure $next) {
     if (Auth::check() && Auth::user()->is_admin) {
@@ -94,6 +94,7 @@ Route::group([
     Route::delete('/tracks/{track}', [TrackController::class, 'destroy'])->name('tracks.destroy');
     Route::get('/tracks/check-name', [TrackController::class, 'checkName'])->name('tracks.check-name');
     Route::post('/react', [TrackController::class, 'react'])->name('reaction.react');
+    Route::get('/users', [\App\Http\Controllers\UserInteractionController::class, 'search'])->name('users.search');
 
     // Notification Routes
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read.all');

@@ -40,13 +40,14 @@ class TrackFactory extends Factory
             'user_id'      => $user->id,
             'name'         => $trackName,
             'file_path'    => $destPath,
-            'category'     => fake()->randomElement(['trap', 'lofi', 'ambient']),
+            'category'     => fake()->randomElement(['instrumental', 'loopkit', 'drumkit', 'multikit']),
             'is_private'   => fake()->boolean(30),
-            'type'         => 'beat',
+            'type'         => fake()->randomElement(['lil uzi vert', 'future', 'drake', 'travis scott', 'playboi carti', 'lil baby', 'wu-tang', 'nas', 'j cole', 'kendrick lamar']),
+            'tags'         => fake()->randomElement(['dark', 'chill', 'uplifting', 'aggressive', 'melodic', 'trap', 'boom bap', 'lo-fi']),
             'bpm'          => fake()->numberBetween(70, 160),
             'key'          => fake()->randomElement(['C', 'D', 'E', 'F']),
             'scale'        => fake()->randomElement(['major', 'minor']),
-            'picture'      => null,
+            'picture'      => '\app\public\images\default-profile.png',
             'folder_files' => null,
         ];
     }

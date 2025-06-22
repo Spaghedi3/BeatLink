@@ -5,27 +5,12 @@ STUFF TO KEEP IN MIND
 ASTAZI:
 ===================================
 
--- adminii sa poata vedea pagina de chat a unui user fara sa poata interationa, doar sa poata vedea mesajele
-
--- nu permite adminilor sa acceseze pagina normala a userilor
-
--- repara sistemul de recomandari (se recomanda ciudat dupa scoruri, vezi in laravel.log)
-
--- termina pagina de foryou cu algoritmul de
-recomandari in functie de beat type, beat tag si
-timpul de ascultare al beaturilor cu acele taguri si tipuri
-
 -- search bar pentru cautat useri, fa-l ca o pagina noua, click in navbar pe "cauta" si redirect pe o pagina
  cu un search bar si un istoric al cautarilor
 
 ===================================
 DE FACUT CAT MAI CURAND
 ===================================
-
--- algoritm AI de recomandari
-
--- pagina de admin pentru aplicatie (un tip de utilizator care sa poata vedea si edita orice postare, dupa actiunea unui admin,
-   utilizatorul va fi notificat de actiunea asupra contentului sau)
 
 -- formular cu "Contact an Admin"
 
@@ -34,10 +19,6 @@ DE FACUT CAT MAI CURAND
 -- fa upload-ul mai scurt sau redirectioneaza pe alta pagina cat isi dau upload fisiere
 
 -- creste valoare de upload pentru fisiere (mai ales cand pui kituri)
-
--- repara bug cu notificari prea multe (coboara dropdownu pana se strica pagina)
-
--- lucreaza la pagina de upload si edit sa fie mai frumoase
 
 ==================================
 DE FACUT PE TERMEN LUNG
@@ -49,13 +30,9 @@ DE FACUT PE TERMEN LUNG
 
 -- buton de pause
 
--- repara responsiveness pentru telefon...
+-- repara responsiveness pentru telefon... (E DE LA SEARCH BAR)
 
 -- reset password cu email
 
 -- confirm account cu email
-===================================
-OPTIONAL UPGRADES
-===================================
--- algoritm AI de recomandari
 ===================================

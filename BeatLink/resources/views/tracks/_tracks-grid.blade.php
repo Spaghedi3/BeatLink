@@ -1,7 +1,7 @@
 <div class="sticky top-0 z-30 bg-[#0e1320] p-4 shadow-md rounded">
     <form action="{{ url()->current() }}" method="GET">
         <div class="flex items-center gap-2">
-            <!-- Always visible Search Bar -->
+            <!-- Always visible content Search Bar -->
             <!-- Search input -->
             <input
                 type="text"

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\UserInteraction;
 use App\Models\TrackStat;
+use App\Models\User;
 
 class UserInteractionController extends Controller
 {
@@ -72,5 +73,19 @@ class UserInteractionController extends Controller
             'love_count'  => $stat->love_count,
             'hate_count'  => $stat->hate_count,
         ]);
+    }
+
+    public function search(Request $request)
+    {
+        $query = User::query();
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where('username', 'like', '%' . $search . '%');
+        }
+
+        $users = $query->paginate(5);
+
+        return view('users.search', compact('users'));
     }
 }

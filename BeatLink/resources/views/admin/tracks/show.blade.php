@@ -63,7 +63,7 @@
     <div class="mb-6">
         <strong>Preview Contents:</strong>
         <ul class="mt-2 space-y-2">
-            @foreach(json_decode($track->folder_files, true) as $file)
+            @foreach($track->folder_files as $file)
             <li class="flex items-center gap-3">
                 <button type="button"
                     onclick="toggleHoverPlay(this, '{{ Storage::url($file) }}')"

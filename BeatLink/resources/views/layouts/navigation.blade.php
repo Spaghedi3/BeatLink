@@ -46,7 +46,7 @@
                 <!-- Notification Icon with improved dropdown -->
                 <div class="relative w-10 h-10 flex items-center justify-center">
                     @php $unread = auth()->user()->unreadNotifications->count(); @endphp
-                    <x-dropdown align="right" width="96">
+                    <x-dropdown align="right" width="wide" class="!w-[32rem]">
                         <x-slot name="trigger">
                             <button class="relative flex items-center justify-center text-gray-400 hover:text-white translate-y-[1px] transition-colors duration-200">
                                 <!-- Bell Icon -->
@@ -56,11 +56,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M14.25 17h-4.5m9-6V8a6.75 6.75 0 10-13.5 0v3a2.25 2.25 0 01-.75 1.687l-.75.563a.75.75 0 00.75 1.25h15a.75.75 0 00.75-1.25l-.75-.563A2.25 2.25 0 0119.5 11z" />
                                 </svg>
-
                                 @if($unread > 0)
-                                <!-- Badge -->
-                                <span class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[10px]
-                     font-semibold rounded-full flex items-center justify-center leading-none">
+                                <span class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-semibold rounded-full flex items-center justify-center leading-none">
                                     {{ $unread }}
                                 </span>
                                 @endif
@@ -68,7 +65,7 @@
                         </x-slot>
 
                         <x-slot name="content">
-                            <!-- Header with better spacing -->
+                            <!-- Header -->
                             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
                                 <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Notifications</h3>
                                 @if($unread > 0)
@@ -76,8 +73,8 @@
                                 @endif
                             </div>
 
-                            <!-- Scrollable notifications container with improved spacing -->
-                            <div class="notifications-scroll-container max-h-80 overflow-y-auto">
+                            <!-- Scrollable notifications container with adjusted spacing -->
+                            <div class="notifications-scroll-container max-h-80 overflow-y-auto px-4 space-y-2">
                                 @forelse(auth()->user()->unreadNotifications as $note)
                                 @php
                                 $data = $note->data;
@@ -103,25 +100,23 @@
                                 @endphp
 
                                 @if($isAdmin)
-                                <!-- Admin notification: not a link, but clickable to mark as read -->
                                 <form method="POST" action="{{ route('notifications.read.one', $note->id) }}">
                                     @csrf
-                                    <button type="submit"
-                                        class="w-full text-left block px-6 py-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200">
-                                        <div class="flex items-start space-x-3">
+                                    <button type="submit" class="w-full text-left block px-6 py-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200 max-w-full">
+                                        <div class="flex items-start space-x-4">
                                             <div class="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mt-0.5">
                                                 {!! $iconSvg !!}
                                             </div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100 leading-5">
+                                            <div class="flex-1">
+                                                <p class="text-[15px] font-medium text-gray-900 dark:text-gray-100 leading-relaxed break-words">
                                                     {{ $data['message'] }}
                                                 </p>
-                                                <div class="mt-2 flex items-center justify-between">
+                                                <div class="mt-3 flex items-center justify-between gap-3">
                                                     <span class="text-xs text-gray-500 dark:text-gray-400">
                                                         {{ $note->created_at->diffForHumans() }}
                                                     </span>
                                                     @if(!empty($data['reason']))
-                                                    <span class="inline-block mt-2 px-3 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 leading-snug max-w-[140px] break-words text-center">
+                                                    <span class="inline-block px-3 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 leading-snug max-w-[140px] break-words text-center">
                                                         Violation of platform<br>rules
                                                     </span>
                                                     @endif
@@ -131,23 +126,22 @@
                                     </button>
                                 </form>
                                 @else
-                                <!-- Regular user notification (clickable link) -->
                                 <x-dropdown-link :href="route('notifications.read.one', $note->id)"
-                                    class="block px-6 py-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200">
-                                    <div class="flex items-start space-x-3">
+                                    class="block px-6 py-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200 max-w-full">
+                                    <div class="flex items-start space-x-4">
                                         <div class="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mt-0.5">
                                             {!! $iconSvg !!}
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100 leading-5">
+                                            <p class="text-[15px] font-medium text-gray-900 dark:text-gray-100 leading-relaxed break-words">
                                                 {{ $data['message'] }}
                                             </p>
-                                            <div class="mt-2 flex items-center justify-between">
+                                            <div class="mt-3 flex items-center justify-between gap-3">
                                                 <span class="text-xs text-gray-500 dark:text-gray-400">
                                                     {{ $note->created_at->diffForHumans() }}
                                                 </span>
                                                 @if(!empty($data['reason']))
-                                                <span class="inline-block mt-2 px-3 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 leading-snug max-w-[140px] break-words text-center">
+                                                <span class="inline-block px-3 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 leading-snug max-w-[140px] break-words text-center">
                                                     Violation of platform<br>rules
                                                 </span>
                                                 @endif
@@ -156,7 +150,6 @@
                                     </div>
                                 </x-dropdown-link>
                                 @endif
-
                                 @empty
                                 <div class="px-6 py-8 text-center">
                                     <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -168,8 +161,6 @@
                                 @endforelse
                             </div>
 
-
-                            <!-- Footer with better styling -->
                             @if($unread > 0)
                             <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
                                 <form action="{{ route('notifications.read.all') }}" method="POST" class="flex justify-center">
@@ -185,6 +176,7 @@
                             @endif
                         </x-slot>
                     </x-dropdown>
+
                 </div>
 
 

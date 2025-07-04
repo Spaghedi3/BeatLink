@@ -31,14 +31,23 @@ class InteractionSeeder extends Seeder
                 ]);
 
                 if (rand(0, 100) < 70) {
-                    DB::table('reactions')->insert([
-                        'owner_id' => $track->user_id,
-                        'user_id' => $user->id,
-                        'track_id' => $track->id,
-                        'reaction' => rand(0, 1) ? 'love' : 'hate',
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
+                    // Check if this reaction already exists
+                    $exists = DB::table('reactions')
+                        ->where('owner_id', $track->user_id)
+                        ->where('user_id', $user->id)
+                        ->where('track_id', $track->id)
+                        ->exists();
+
+                    if (!$exists) {
+                        DB::table('reactions')->insert([
+                            'owner_id' => $track->user_id,
+                            'user_id' => $user->id,
+                            'track_id' => $track->id,
+                            'reaction' => rand(0, 1) ? 'love' : 'hate',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
                 }
             }
         }

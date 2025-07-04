@@ -5,16 +5,14 @@ STUFF TO KEEP IN MIND
 ASTAZI:
 ===================================
 
--- search bar pentru cautat useri, fa-l ca o pagina noua, click in navbar pe "cauta" si redirect pe o pagina
- cu un search bar si un istoric al cautarilor
+-- comanda pentru recalcularea recomandarilor sa fie rulata periodic
+
+-- modifica bara de notificari
+
 
 ===================================
 DE FACUT CAT MAI CURAND
 ===================================
-
--- formular cu "Contact an Admin"
-
--- rescrie controlerele si modelele sa fie thick models instead of thick controllers (mai ai la recommendation controller)
 
 -- fa upload-ul mai scurt sau redirectioneaza pe alta pagina cat isi dau upload fisiere
 
@@ -23,10 +21,6 @@ DE FACUT CAT MAI CURAND
 ==================================
 DE FACUT PE TERMEN LUNG
 ===================================
-
--- sa afaci tagurile si type urile obligatorii
-
--- lucreaza la notificari sa nu poata fi un user spamat cu notificari (love, hate, love, hate)
 
 -- buton de pause
 

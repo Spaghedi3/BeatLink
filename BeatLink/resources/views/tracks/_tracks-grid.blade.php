@@ -109,15 +109,14 @@
                     </button>
 
                     <!-- Dropdown -->
-                    <div x-show="open"
-                        @click.outside="open = false"
-                        x-transition
-                        class="absolute mt-2 bg-white border border-gray-200 rounded shadow-md z-10">
+                    <div x-show="open" x-cloak @click.away="open = false"
+                        class="absolute z-20 right-0 mt-2 w-32 bg-white text-gray-800 rounded shadow-md py-1">
                         <a href="{{ route('report.track', $track->id) }}"
                             class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
                             Report track
                         </a>
                     </div>
+
                 </div>
                 @endif
             </div>
@@ -149,7 +148,7 @@
                 @if($track->folder_files)
                 <div class="absolute inset-0 bg-gray-900 bg-opacity-90 opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-y-auto p-2">
                     <ul class="space-y-2">
-                        @foreach(json_decode($track->folder_files, true) as $file)
+                        @foreach($track->folder_files as $file)
                         <li class="flex items-center space-x-2 text-sm text-white">
                             <button type="button"
                                 onclick="toggleHoverPlay(this, '{{ Storage::url($file) }}')"
@@ -250,6 +249,7 @@
         class="fixed bottom-8 right-8 bg-blue-600 text-white px-4 py-2 rounded shadow hidden z-50">
         Top
     </button>
+
 </div>
 <script>
     window.routes = {

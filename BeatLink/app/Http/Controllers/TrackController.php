@@ -14,10 +14,13 @@ use Illuminate\Support\Facades\Auth;
 class TrackController extends Controller
 {
 
-    function store(StoreTrackRequest $r)
+    public function store(StoreTrackRequest $r)
     {
         Track::createFromRequest($r);
-        return redirect()->route('tracks.index')->with('success', 'Track uploaded.');
+        return redirect()
+            ->route('tracks.index')
+            ->with('show_loading', true)
+            ->with('success', 'Track uploaded.');
     }
 
     function update(UpdateTrackRequest $r, Track $track)

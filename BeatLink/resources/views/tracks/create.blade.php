@@ -1,4 +1,3 @@
-<!-- resources/views/tracks/create.blade.php -->
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">
@@ -185,4 +184,32 @@
             </div>
         </div>
     </div>
+
+    {{-- Loading Overlay --}}
+    <div id="loading-overlay" style="
+        position:fixed;
+        top:0; left:0;
+        width:100vw; height:100vh;
+        z-index:9999;
+        display:none;
+        align-items:center;
+        justify-content:center;
+        background:rgba(255,255,255,0.9)">
+        <div>
+            <img src="/storage/images/loading.gif" alt="Loading..." style="width:64px;display:block;margin:auto;" />
+            <p style="text-align:center;font-size:1.2em;margin-top:1em;">
+                Please wait, we are processing your track upload...
+            </p>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('track-form');
+            if (form) {
+                form.addEventListener('submit', function() {
+                    document.getElementById('loading-overlay').style.display = 'flex';
+                });
+            }
+        });
+    </script>
 </x-app-layout>

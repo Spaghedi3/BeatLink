@@ -38,6 +38,10 @@ class Track extends Model
         'scale',
     ];
 
+    protected $casts = [
+        'folder_files' => 'array',
+    ];
+
     // ─── Relationships ─────────────────────────────────────────
 
     public function user()
@@ -216,25 +220,38 @@ class Track extends Model
 
     // ─── Upload Helpers ──────────────────────────────────────
 
-    protected static function processAudioUploads(Request $r, string $username, ?string $oldPath = null, ?string $oldJson = null): array
+    // ─── Upload Helpers ──────────────────────────────────────
+
+    protected static function processAudioUploads(Request $r, string $username, ?string $oldPath = null, ?array $oldJson = null): array
     {
-        $audioPath = $oldPath;
+        $audioPath  = $oldPath;
         $folderJson = $oldJson;
 
         if ($r->hasFile('audio_file')) {
-            $audioPath  = $r->file('audio_file')->store("tracks/{$username}", 'public');
+            $audioPath = $r->file('audio_file')
+                ->store("tracks/{$username}", 'public');
         } elseif ($r->hasFile('audio_folder')) {
             $sanitized = Str::slug($r->name);
             $paths     = [];
-            foreach ($r->file('audio_folder') as $f) {
-                $paths[] = $f->storeAs("kits/{$username}/{$sanitized}", $f->getClientOriginalName(), 'public');
+
+            foreach ($r->file('audio_folder') as $file) {
+                $paths[] = $file->storeAs(
+                    "kits/{$username}/{$sanitized}",
+                    $file->getClientOriginalName(),
+                    'public'
+                );
             }
-            $folderJson = json_encode($paths);
-            $audioPath = "kits/{$username}/{$sanitized}";
+
+            $folderJson = $paths;
+            $audioPath  = "kits/{$username}/{$sanitized}";
         }
 
-        return [$audioPath, $folderJson];
+        return [
+            $audioPath,
+            $folderJson,
+        ];
     }
+
 
     protected function analyzeWithEssentia(): void
     {
@@ -283,7 +300,7 @@ class Track extends Model
         if ($this->file_path)    Storage::delete("public/{$this->file_path}");
         if ($this->picture)      Storage::delete("public/{$this->picture}");
         if ($this->folder_files) {
-            foreach (json_decode($this->folder_files, true) as $f) {
+            foreach ($this->folder_files as $f) {
                 Storage::delete("public/{$f}");
             }
         }

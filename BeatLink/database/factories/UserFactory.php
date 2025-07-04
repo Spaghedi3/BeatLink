@@ -27,7 +27,7 @@ class UserFactory extends Factory
             'username' => fake()->unique()->userName(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
+            'password' => Hash::make('parolamea'),
             'remember_token' => Str::random(10),
             'is_admin' => false,
             'is_artist' => fake()->boolean(30), // ~30% of users are artists

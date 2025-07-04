@@ -104,7 +104,7 @@
                             hover:file:bg-blue-100">
                         @if($track->folder_files)
                         <p class="mt-2 text-sm text-gray-400">
-                            {{ count(json_decode($track->folder_files, true)) }} file(s) uploaded
+                            {{ count($track->folder_files) }} file(s) uploaded
                         </p>
                         @endif
                         @error('audio_folder.*')

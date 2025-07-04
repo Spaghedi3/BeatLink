@@ -36,19 +36,29 @@ class TrackFactory extends Factory
             copy($source, $destination);
         }
 
+        $category = fake()->randomElement(['instrumental', 'loopkit', 'drumkit', 'multikit']);
+
+        // Only assign folder_files if NOT instrumental
+        $folderFiles = null;
+        if (in_array($category, ['drumkit', 'loopkit', 'multikit'])) {
+            $folderFiles = [];
+            for ($i = 1; $i <= 5; $i++) {
+                $folderFiles[] = $destPath;
+            }
+        }
+
         return [
             'user_id'      => $user->id,
             'name'         => $trackName,
             'file_path'    => $destPath,
-            'category'     => fake()->randomElement(['instrumental', 'loopkit', 'drumkit', 'multikit']),
+            'category'     => $category,
             'is_private'   => fake()->boolean(30),
-            'type'         => fake()->randomElement(['lil uzi vert', 'future', 'drake', 'travis scott', 'playboi carti', 'lil baby', 'wu-tang', 'nas', 'j cole', 'kendrick lamar']),
-            'tags'         => fake()->randomElement(['dark', 'chill', 'uplifting', 'aggressive', 'melodic', 'trap', 'boom bap', 'lo-fi']),
+            'type'         => 'song',
             'bpm'          => fake()->numberBetween(70, 160),
             'key'          => fake()->randomElement(['C', 'D', 'E', 'F']),
             'scale'        => fake()->randomElement(['major', 'minor']),
-            'picture'      => '\app\public\images\default-profile.png',
-            'folder_files' => null,
+            'picture'      => null,
+            'folder_files' => $folderFiles, // Will be null for instrumentals
         ];
     }
 }

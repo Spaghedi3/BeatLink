@@ -19,7 +19,11 @@ BeatLink is a web-based music platform developed as part of a bachelor's degree 
 
 Watch our demo video to get a quick overview of how BeatLink works:
 
-[![Demo Video](https://www.youtube.com/watch?v=utSL46Bzbj0)
+[![Demo Video]
+<video width="640" height="360" controls>
+  <source src="https://raw.githubusercontent.com/Spaghedi3/BeatLink/main/demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 
 ## Technologies Used

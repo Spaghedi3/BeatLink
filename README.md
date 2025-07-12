@@ -15,6 +15,13 @@ BeatLink is a web-based music platform developed as part of a bachelor's degree 
 - **Real Time Chat**: Engage in real-time communication with other users.
 - **Responsive Design**: Optimized for desktops, tablets, and mobile devices.
 
+## Demo Video
+
+Watch our demo video to get a quick overview of how BeatLink works:
+
+[![Demo Video](https://youtu.be/utSL46Bzbj0)
+
+
 ## Technologies Used
 
 - **PHP (45.1%)**: Backbone of the server-side logic and APIs.
